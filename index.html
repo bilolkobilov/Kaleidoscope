@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Enhanced Infinity Kaleidoscope (Three.js 3D) - Fixed</title>
+    <title>Enhanced Infinity Kaleidoscope (Three.js 3D)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.2/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -16,15 +16,18 @@
             background-color: #050505;
             font-family: 'Orbitron', sans-serif;
             color: #eee;
-            display: flex; 
+            display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
         canvas {
-            display: block; 
+            display: block;
             position: absolute;
             top: 0;
             left: 0;
@@ -34,12 +37,8 @@
             touch-action: none;
         }
 
-        #threejs-canvas {
-             z-index: 1;
-        }
-        #defaultCanvas0 {
-            z-index: 1;
-        }
+        #threejs-canvas { z-index: 1; }
+        #defaultCanvas0 { z-index: 1; }
 
         .menu-button {
             position: fixed;
@@ -55,7 +54,7 @@
             transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
             font-weight: bold;
             z-index: 1001;
-            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
             box-shadow: 0 2px 8px rgba(0, 191, 255, 0.3);
         }
         .menu-button:hover {
@@ -63,15 +62,17 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0, 191, 255, 0.5);
         }
-         .menu-button:active {
-             transform: translateY(0);
-             box-shadow: 0 2px 5px rgba(0, 191, 255, 0.2);
+        .menu-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 191, 255, 0.2);
         }
 
         .controls {
             position: fixed;
-            top: 0; right: 0;
-            width: 280px; height: 100%;
+            top: 0;
+            right: 0;
+            width: 280px;
+            height: 100%;
             background-color: rgba(15, 15, 15, 0.97);
             padding: 70px 20px 20px 20px;
             box-shadow: -5px 0 20px rgba(0,0,0,0.7);
@@ -82,7 +83,8 @@
             pointer-events: none;
             overflow-y: auto;
             box-sizing: border-box;
-            scrollbar-width: thin; scrollbar-color: #00bfff #222;
+            scrollbar-width: thin;
+            scrollbar-color: #00bfff #222;
         }
         .controls::-webkit-scrollbar { width: 8px; }
         .controls::-webkit-scrollbar-track { background: #222; border-radius: 10px; }
@@ -91,7 +93,7 @@
 
         .control-item { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
         .control-item label { font-size: 13px; color: #ccc; display: flex; justify-content: space-between; align-items: center; }
-        input[type="range"] { cursor: pointer; width: 100%; -webkit-appearance: none; appearance: none; height: 8px; background: linear-gradient(90deg, #00bfff, #0077cc); outline: none; opacity: 0.85; transition: opacity .2s; border-radius: 4px; margin-top: 4px; }
+        input[type="range"] { cursor: pointer; width: 100%; -webkit-appearance: none; appearance: none; height: 8px; background: linear-gradient(90deg, #00bfff, #0077cc); outline: none; opacity: 0.85; transition: opacity .2s; border-radius: 4px; margin-top: 4px; touch-action: pan-y; }
         input[type="range"]:hover { opacity: 1; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: #eee; cursor: pointer; border-radius: 50%; box-shadow: 0 0 8px rgba(255, 255, 255, 0.5); margin-top: -5px; border: 2px solid #00bfff; }
         input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: #eee; cursor: pointer; border-radius: 50%; box-shadow: 0 0 8px rgba(255, 255, 255, 0.5); border: 2px solid #00bfff; }
@@ -100,111 +102,560 @@
         .controls button:active { transform: translateY(0); box-shadow: 0 2px 5px rgba(0, 191, 255, 0.2); background: linear-gradient(145deg, #0099cc, #006699); }
         .value-display { min-width: 35px; text-align: right; font-weight: bold; color: #00eaff; font-family: monospace; font-size: 13px; }
 
+        #loading-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00bfff;
+            font-size: 16px;
+            z-index: 1002;
+            display: none;
+        }
+
         @media (max-width: 600px) {
             .controls { width: 250px; padding: 65px 15px 15px 15px; }
             .menu-button { top: 10px; right: 10px; padding: 8px 12px; font-size: 13px; }
             .control-item label { font-size: 12px; }
             .value-display { font-size: 12px; }
             .controls button { padding: 10px; font-size: 13px; }
+            input[type="range"]::-webkit-slider-thumb { width: 22px; height: 22px; }
+            input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; }
         }
     </style>
 </head>
 <body>
-    <button id="menuButton" class="menu-button">Menu</button>
-    <div class="controls" id="controlsPanel">
+    <button id="menuButton" class="menu-button" aria-label="Toggle menu">Menu</button>
+    <div class="controls" id="controlsPanel" role="region" aria-label="Kaleidoscope controls">
         <div class="control-item">
-             <button id="dimensionButton">Mode: 2D</button>
+            <button id="dimensionButton" aria-label="Toggle 2D/3D mode">Mode: 2D</button>
         </div>
         <div class="control-item">
             <label for="symmetrySlider">Symmetry: <span id="symmetryValue" class="value-display">16</span></label>
-            <input type="range" id="symmetrySlider" min="2" max="64" value="16" step="1">
+            <input type="range" id="symmetrySlider" min="2" max="64" value="16" step="1" aria-label="Symmetry level">
         </div>
         <div class="control-item">
             <label for="sizeSlider">Max Size: <span id="sizeValue" class="value-display">10</span></label>
-            <input type="range" id="sizeSlider" min="1" max="100" value="10" step="1">
+            <input type="range" id="sizeSlider" min="1" max="100" value="10" step="1" aria-label="Maximum brush size">
         </div>
         <div class="control-item">
             <label for="fadeSlider">Trail (2D Fade): <span id="fadeValue" class="value-display">2.0</span></label>
-            <input type="range" id="fadeSlider" min="0" max="50" value="2" step="0.5">
+            <input type="range" id="fadeSlider" min="0" max="50" value="2" step="0.5" aria-label="Trail fade amount">
         </div>
         <div class="control-item">
             <label for="speedInfluenceSlider">Speed Influence: <span id="speedInfluenceValue" class="value-display">3.0</span></label>
-            <input type="range" id="speedInfluenceSlider" min="0" max="20" value="3" step="0.1">
+            <input type="range" id="speedInfluenceSlider" min="0" max="20" value="3" step="0.1" aria-label="Speed influence on color">
         </div>
         <div class="control-item">
-            <button id="modeButton">Shape: Lines</button>
+            <button id="modeButton" aria-label="Change drawing shape">Shape: Lines</button>
         </div>
         <div class="control-item">
-            <button id="effectButton">Effect: None</button>
+            <button id="effectButton" aria-label="Change visual effect">Effect: None</button>
         </div>
         <div class="control-item">
-            <button id="paletteButton">Palette: Dynamic</button>
+            <button id="paletteButton" aria-label="Change color palette">Palette: Dynamic</button>
         </div>
         <div class="control-item">
-            <button id="clearButton">Clear Canvas</button>
+            <button id="clearButton" aria-label="Clear canvas">Clear Canvas</button>
         </div>
-         <div class="control-item">
-            <button id="saveButton">Save Image</button>
+        <div class="control-item">
+            <button id="saveButton" aria-label="Save image">Save Image</button>
         </div>
-         <div class="control-item">
-            <button id="autoDrawButton">Auto Draw: OFF</button>
+        <div class="control-item">
+            <button id="autoDrawButton" aria-label="Toggle auto draw">Auto Draw: OFF</button>
         </div>
     </div>
+    <div id="loading-indicator">Switching mode...</div>
     <script>
-        let is3DMode = false;
-        let symmetry = 16;
-        let angle;
-        let hueValue = 0;
-        let maxBrushSize = 10;
-        let minBrushSize = 1;
-        let fadeAmount = 2;
-        let speedInfluence = 3;
-        let drawingMode = 0;
-        let effectMode = 0;
-        let drawingRadius;
-        let autoDraw = false;
-        let autoDrawAngle = 0;
-        let autoDrawRadius = 0;
-        let autoDrawSpeed = 0.01;
-        let autoDrawNoiseOffset = 0;
-        let currentPaletteIndex = 0;
-        const palettes = [ 
+        // Enhanced global error handlers
+        window.addEventListener('error', (event) => {
+            const errorDetails = {
+                message: event.message,
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno,
+                error: event.error ? event.error.stack || event.error.toString() : 'No error stack available'
+            };
+            console.error('Global error:', JSON.stringify(errorDetails, null, 2));
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason?.stack || event.reason);
+        });
+
+        // State management
+        const state = {
+            is3DMode: false,
+            symmetry: 16,
+            maxBrushSize: 10,
+            minBrushSize: 1,
+            fadeAmount: 2,
+            speedInfluence: 3,
+            drawingMode: 0,
+            effectMode: 0,
+            autoDraw: false,
+            hueValue: 0,
+            drawingRadius: 0,
+            autoDrawAngle: 0,
+            autoDrawRadius: 0,
+            autoDrawSpeed: 0.01,
+            autoDrawNoiseOffset: 0,
+            currentPaletteIndex: 0,
+            offsetX_p5: 0,
+            offsetY_p5: 0,
+            isDraggingP5: false,
+            dragStartX_p5: 0,
+            dragStartY_p5: 0,
+            isTouchPanningP5: false,
+            isMouseDown3D: false,
+            mouseClickX3D: 0,
+            mouseClickY3D: 0,
+            hasDragged3D: false,
+            DRAG_THRESHOLD_3D: 5,
+            MAX_PARTICLES_P5: 300,
+            MAX_3D_OBJECT_GROUPS: 150
+        };
+
+        const palettes = [
             { name: "Dynamic", colors: [] },
-            { name: "Ocean", colors: [ [180, 90, 90], [210, 85, 80], [230, 80, 70], [200, 95, 95] ] },
-            { name: "Sunset", colors: [ [10, 95, 100], [30, 90, 95], [50, 85, 90], [350, 90, 85] ] },
-            { name: "Forest", colors: [ [120, 70, 60], [150, 65, 50], [90, 75, 70], [100, 80, 80] ] },
-            { name: "Nebula", colors: [ [270, 80, 90], [300, 85, 85], [240, 75, 95], [330, 90, 80] ] },
-            { name: "Monochrome", colors: [ [0, 0, 100], [0, 0, 80], [0, 0, 60], [0, 0, 40] ] },
-            { name: "Neon", colors: [ [300, 100, 100], [180, 100, 95], [60, 100, 90], [0, 100, 100] ] }
+            { name: "Ocean", colors: [[180, 90, 90], [210, 85, 80], [230, 80, 70], [200, 95, 95]] },
+            { name: "Sunset", colors: [[10, 95, 100], [30, 90, 95], [50, 85, 90], [350, 90, 85]] },
+            { name: "Forest", colors: [[120, 70, 60], [150, 65, 50], [90, 75, 70], [100, 80, 80]] },
+            { name: "Nebula", colors: [[270, 80, 90], [300, 85, 85], [240, 75, 95], [330, 90, 80]] },
+            { name: "Monochrome", colors: [[0, 0, 100], [0, 0, 80], [0, 0, 60], [0, 0, 40]] },
+            { name: "Neon", colors: [[300, 100, 100], [180, 100, 95], [60, 100, 90], [0, 100, 100]] }
         ];
+
         let p5Canvas = null;
-        let isDraggingP5 = false;
-        let dragStartX_p5, dragStartY_p5;
-        let offsetX_p5 = 0, offsetY_p5 = 0;
         let particles_p5 = [];
-        const MAX_PARTICLES_P5 = 300;
-        let isTouchPanningP5 = false;
         let threeContainer = null;
-        let scene, camera, renderer, controls;
+        let scene = null, camera = null, renderer = null, controls = null;
         let threeObjects = [];
         let animationFrameId = null;
-        let isMouseDown3D = false;
-        let mouseClickX3D = 0, mouseClickY3D = 0;
-        let hasDragged3D = false;
-        const DRAG_THRESHOLD_3D = 5;
-        let symmetrySlider, sizeSlider, fadeSlider, speedInfluenceSlider;
-        let clearButton, modeButton, menuButton, controlsPanel, effectButton, paletteButton, dimensionButton, saveButton, autoDrawButton;
-        let symmetryValueSpan, sizeValueSpan, fadeValueSpan, speedInfluenceValueSpan;
-        let sketch = function(p) {
+        let myp5 = null;
+
+        // DOM elements
+        let symmetrySlider = null, sizeSlider = null, fadeSlider = null, speedInfluenceSlider = null;
+        let clearButton = null, modeButton = null, menuButton = null, controlsPanel = null;
+        let effectButton = null, paletteButton = null, dimensionButton = null, saveButton = null, autoDrawButton = null;
+        let symmetryValueSpan = null, sizeValueSpan = null, fadeValueSpan = null, speedInfluenceValueSpan = null;
+        let loadingIndicator = null;
+
+        // Utility functions using native libraries
+        const utils = {
+            random: (min, max) => myp5 ? myp5.random(min, max) : Math.random() * (max - min) + min,
+            noise: (x, y = 0, z = 0) => myp5 ? myp5.noise(x, y, z) : (Math.sin(x * 12.9898 + y * 78.233 + z * 45.543) * 43758.5453 % 1 + 1) / 2,
+            map: (value, start1, stop1, start2, stop2) => THREE.MathUtils.mapLinear(value, start1, stop1, start2, stop2),
+            constrain: (value, min, max) => THREE.MathUtils.clamp(value, min, max),
+            lerp: (start, stop, amt) => THREE.MathUtils.lerp(start, stop, amt),
+            floor: Math.floor,
+            sin: Math.sin,
+            cos: Math.cos,
+            atan2: Math.atan2,
+            sqrt: Math.sqrt,
+            abs: Math.abs,
+            PI: Math.PI,
+            TWO_PI: Math.PI * 2
+        };
+
+        // p5.js sketch
+        const sketch = function(p) {
             p.setup = function() {
-                if (!is3DMode) {
-                    p5Canvas = p.createCanvas(p.windowWidth, p.windowHeight);
-                    p5Canvas.id('defaultCanvas0');
-                    p5Canvas.style('z-index', '1');
-                    initializeP5State();
-                } else {
-                    p.noCanvas();
+                try {
+                    if (!window.p5 || !window.THREE) {
+                        throw new Error('Required libraries (p5.js or Three.js) failed to load');
+                    }
+                    if (!state.is3DMode) {
+                        p5Canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+                        p5Canvas.id('defaultCanvas0');
+                        p5Canvas.style('z-index', '1');
+                        initializeP5State();
+                    } else {
+                        p.noCanvas();
+                    }
+                    setupDOMElements();
+                    attachEventListeners();
+                    if (state.is3DMode) {
+                        setupThreeJS();
+                    }
+                    console.log('p5.js setup completed');
+                } catch (err) {
+                    console.error('Error in p5.setup:', err);
+                    alert('Failed to initialize p5.js. Check console for details.');
                 }
+            };
+
+            function initializeP5State() {
+                try {
+                    state.angle = utils.TWO_PI / state.symmetry;
+                    calculateDrawingRadius();
+                    p.colorMode(p.HSB, 360, 100, 100, 100);
+                    p.background(5);
+                    state.offsetX_p5 = 0;
+                    state.offsetY_p5 = 0;
+                    particles_p5 = [];
+                } catch (err) {
+                    console.error('Error in initializeP5State:', err);
+                }
+            }
+
+            p.draw = function() {
+                if (!state.is3DMode && p5Canvas) {
+                    try {
+                        draw2D();
+                    } catch (err) {
+                        console.error('Error in draw2D:', err);
+                    }
+                }
+            };
+
+            function draw2D() {
+                try {
+                    if (!myp5 || !p5Canvas) return;
+                    const mappedFadeAlpha = utils.map(state.fadeAmount, 0, 50, 0.1, 15);
+                    p.background(5, 5, 5, mappedFadeAlpha);
+                    p.translate(p.width / 2 + state.offsetX_p5, p.height / 2 + state.offsetY_p5);
+
+                    let currentMouseX, currentMouseY, prevMouseX, prevMouseY;
+                    if (state.autoDraw) {
+                        const noiseFactor = utils.noise(state.autoDrawNoiseOffset);
+                        state.autoDrawRadius = utils.map(utils.noise(state.autoDrawNoiseOffset + 10), 0, 1, 0, state.drawingRadius * 0.9);
+                        state.autoDrawAngle += utils.map(utils.noise(state.autoDrawNoiseOffset + 20), 0, 1, -state.autoDrawSpeed, state.autoDrawSpeed) * 5;
+                        currentMouseX = state.autoDrawRadius * utils.cos(state.autoDrawAngle);
+                        currentMouseY = state.autoDrawRadius * utils.sin(state.autoDrawAngle);
+                        const prevAngle = state.autoDrawAngle - state.autoDrawSpeed * 5;
+                        const prevRadius = utils.map(utils.noise(state.autoDrawNoiseOffset + 10 - 0.01), 0, 1, 0, state.drawingRadius * 0.9);
+                        prevMouseX = prevRadius * utils.cos(prevAngle);
+                        prevMouseY = prevRadius * utils.sin(prevAngle);
+                        state.autoDrawNoiseOffset += 0.005;
+                    } else {
+                        currentMouseX = p.mouseX - p.width / 2 - state.offsetX_p5;
+                        currentMouseY = p.mouseY - p.height / 2 - state.offsetY_p5;
+                        prevMouseX = p.pmouseX - p.width / 2 - state.offsetX_p5;
+                        prevMouseY = p.pmouseY - p.height / 2 - state.offsetY_p5;
+                    }
+
+                    const distFromCenter = p.dist(0, 0, currentMouseX, currentMouseY);
+                    const shouldDraw = state.autoDraw || (p.mouseIsPressed && !state.isDraggingP5 && distFromCenter < state.drawingRadius && p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height);
+
+                    if (!shouldDraw) return;
+
+                    const speed = state.autoDraw ? p.dist(currentMouseX, currentMouseY, prevMouseX, prevMouseY) * 5 : p.dist(currentMouseX, currentMouseY, prevMouseX, prevMouseY);
+                    const constrainedSpeed = utils.constrain(speed, 0, 50);
+                    let baseBrushSize = utils.map(distFromCenter, 0, state.drawingRadius, state.minBrushSize, state.maxBrushSize);
+                    baseBrushSize = utils.constrain(baseBrushSize, state.minBrushSize, state.maxBrushSize);
+                    let baseHue, saturation, brightness;
+                    let alpha = utils.map(constrainedSpeed, 0, 30, 40, 100, true);
+
+                    if (state.currentPaletteIndex === 0) {
+                        const noiseHue = utils.noise(currentMouseX * 0.005, currentMouseY * 0.005, p.frameCount * 0.001);
+                        baseHue = (state.hueValue + utils.map(noiseHue, 0, 1, -90, 90) + constrainedSpeed * state.speedInfluence) % 360;
+                        saturation = utils.map(constrainedSpeed, 0, 30, 70, 100, true);
+                        brightness = utils.map(distFromCenter, 0, state.drawingRadius, 100, 60, true);
+                    } else {
+                        const paletteColors = palettes[state.currentPaletteIndex].colors;
+                        const noiseFactor = utils.noise(distFromCenter * 0.01, p.frameCount * 0.005);
+                        const blendFactor = (distFromCenter / state.drawingRadius + noiseFactor) % 1.0;
+                        const index1 = utils.floor(blendFactor * paletteColors.length) % paletteColors.length;
+                        const index2 = (index1 + 1) % paletteColors.length;
+                        const lerpAmt = (blendFactor * paletteColors.length) % 1.0;
+                        const c1 = p.color(paletteColors[index1][0], paletteColors[index1][1], paletteColors[index1][2]);
+                        const c2 = p.color(paletteColors[index2][0], paletteColors[index2][1], paletteColors[index2][2]);
+                        const lerpedColor = p.lerpColor(c1, c2, lerpAmt);
+                        baseHue = p.hue(lerpedColor);
+                        saturation = p.saturation(lerpedColor);
+                        brightness = p.brightness(lerpedColor);
+                        baseHue = (baseHue + constrainedSpeed * state.speedInfluence * 0.3 + p.frameCount * 0.1) % 360;
+                        saturation = utils.constrain(saturation + constrainedSpeed * 1.5, 50, 100);
+                        brightness = utils.constrain(brightness - distFromCenter * 0.05, 40, 100);
+                    }
+
+                    if (baseHue < 0) baseHue += 360;
+                    let currentBrushSize = baseBrushSize;
+                    let currentHue = baseHue;
+                    let currentSaturation = saturation;
+                    let currentBrightness = brightness;
+                    let jitterX = 0, jitterY = 0;
+
+                    if (state.effectMode === 1) {
+                        const pulse = utils.sin(p.frameCount * 0.08 + distFromCenter * 0.03) * (state.maxBrushSize * 0.4) + (state.maxBrushSize * 0.1);
+                        currentBrushSize = Math.max(state.minBrushSize, baseBrushSize + pulse);
+                        const colorPulse = utils.sin(p.frameCount * 0.06 + distFromCenter * 0.02) * 30;
+                        currentHue = (baseHue + colorPulse) % 360;
+                        currentSaturation = utils.constrain(saturation + utils.abs(utils.sin(p.frameCount * 0.1)) * 20, 60, 100);
+                        currentBrightness = utils.constrain(brightness + utils.abs(utils.cos(p.frameCount * 0.09)) * 20, 50, 100);
+                    } else if (state.effectMode === 2) {
+                        currentHue = (baseHue + p.frameCount * 2.0) % 360;
+                        currentSaturation = 100;
+                        currentBrightness = 100;
+                        alpha = 95;
+                    } else if (state.effectMode === 3) {
+                        const jitterAmount = utils.map(constrainedSpeed, 0, 20, 0.5, 5, true);
+                        jitterX = utils.random(-jitterAmount, jitterAmount);
+                        jitterY = utils.random(-jitterAmount, jitterAmount);
+                        currentBrushSize *= utils.random(0.8, 1.2);
+                    }
+
+                    if (currentHue < 0) currentHue += 360;
+
+                    for (let i = 0; i < state.symmetry; i++) {
+                        p.push();
+                        p.rotate(state.angle * i);
+                        const drawX = currentMouseX + jitterX;
+                        const drawY = currentMouseY + jitterY;
+                        const prevDrawX = prevMouseX + jitterX;
+                        const prevDrawY = prevMouseY + jitterY;
+                        p.strokeWeight(currentBrushSize);
+                        p.stroke(currentHue, currentSaturation, currentBrightness, alpha);
+                        if (state.drawingMode === 1 || state.drawingMode === 2) {
+                            p.fill(currentHue, currentSaturation, currentBrightness, alpha * 0.6);
+                            p.noStroke();
+                        } else if (state.drawingMode === 4) {
+                            p.noStroke();
+                            p.fill(currentHue, currentSaturation, currentBrightness, alpha * 0.8);
+                        } else {
+                            p.noFill();
+                        }
+
+                        switch (state.drawingMode) {
+                            case 0: p.line(drawX, drawY, prevDrawX, prevDrawY); break;
+                            case 1: p.ellipse(drawX, drawY, currentBrushSize * 1.5, currentBrushSize * 1.5); break;
+                            case 2:
+                                const ts = currentBrushSize * 2.0;
+                                p.push();
+                                p.translate(drawX, drawY);
+                                p.rotate(p.atan2(drawY - prevDrawY, drawX - prevDrawX));
+                                p.triangle(0, -ts / 2, -ts / 1.5, ts / 2, ts / 1.5, ts / 2);
+                                p.pop();
+                                break;
+                            case 3:
+                                p.noFill();
+                                p.beginShape();
+                                p.vertex(prevDrawX, prevDrawY);
+                                p.quadraticVertex((prevDrawX + drawX) / 2 + utils.random(-5, 5), (prevDrawY + drawY) / 2 + utils.random(-5, 5), drawX, drawY);
+                                p.endShape();
+                                break;
+                            case 4:
+                                if (particles_p5.length < state.MAX_PARTICLES_P5) {
+                                    particles_p5.push(new ParticleP5(p, drawX, drawY, currentHue, currentSaturation, currentBrightness, currentBrushSize));
+                                }
+                                break;
+                            case 5:
+                                p.push();
+                                p.translate(drawX, drawY);
+                                const na = utils.noise(drawX * 0.02, drawY * 0.02, p.frameCount * 0.01) * utils.TWO_PI * 4;
+                                const ll = currentBrushSize * utils.map(constrainedSpeed, 0, 20, 1, 3, true);
+                                p.line(0, 0, utils.cos(na) * ll, utils.sin(na) * ll);
+                                p.pop();
+                                break;
+                        }
+
+                        p.push();
+                        p.scale(1, -1);
+                        p.strokeWeight(currentBrushSize);
+                        p.stroke(currentHue, currentSaturation, currentBrightness, alpha * 0.8);
+                        if (state.drawingMode === 1 || state.drawingMode === 2) {
+                            p.fill(currentHue, currentSaturation, currentBrightness, alpha * 0.4);
+                            p.noStroke();
+                        } else if (state.drawingMode === 4) {
+                        } else {
+                            p.noFill();
+                        }
+
+                        switch (state.drawingMode) {
+                            case 0: p.line(drawX, drawY, prevDrawX, prevDrawY); break;
+                            case 1: p.ellipse(drawX, drawY, currentBrushSize * 1.5, currentBrushSize * 1.5); break;
+                            case 2:
+                                const ts = currentBrushSize * 2.0;
+                                p.push();
+                                p.translate(drawX, drawY);
+                                p.rotate(p.atan2(drawY - prevDrawY, drawX - prevDrawX));
+                                p.triangle(0, -ts / 2, -ts / 1.5, ts / 2, ts / 1.5, ts / 2);
+                                p.pop();
+                                break;
+                            case 3:
+                                p.noFill();
+                                p.beginShape();
+                                p.vertex(prevDrawX, prevDrawY);
+                                p.quadraticVertex((prevDrawX + drawX) / 2 + utils.random(-5, 5), (prevDrawY + drawY) / 2 + utils.random(-5, 5), drawX, drawY);
+                                p.endShape();
+                                break;
+                            case 5:
+                                p.push();
+                                p.translate(drawX, drawY);
+                                const na = utils.noise(drawX * 0.02, drawY * 0.02, p.frameCount * 0.01) * utils.TWO_PI * 4;
+                                const ll = currentBrushSize * utils.map(constrainedSpeed, 0, 20, 1, 3, true);
+                                p.line(0, 0, utils.cos(na) * ll, utils.sin(na) * ll);
+                                p.pop();
+                                break;
+                        }
+                        p.pop();
+                        p.pop();
+                    }
+
+                    state.hueValue = (state.hueValue + 0.05 + constrainedSpeed * 0.005) % 360;
+                    if (state.hueValue < 0) state.hueValue += 360;
+
+                    if (state.drawingMode === 4) {
+                        for (let i = particles_p5.length - 1; i >= 0; i--) {
+                            if (particles_p5[i]) {
+                                particles_p5[i].update();
+                                particles_p5[i].display();
+                                if (particles_p5[i].isFinished()) {
+                                    particles_p5.splice(i, 1);
+                                }
+                            }
+                        }
+                    }
+
+                    p.resetMatrix();
+                } catch (err) {
+                    console.error('Error in draw2D inner:', err);
+                }
+            }
+
+            p.windowResized = function() {
+                try {
+                    if (!state.is3DMode && p5Canvas) {
+                        p.resizeCanvas(p.windowWidth, p.windowHeight);
+                        calculateDrawingRadius();
+                        p.background(5);
+                        state.offsetX_p5 = 0;
+                        state.offsetY_p5 = 0;
+                    } else if (state.is3DMode && renderer) {
+                        onThreeJSWindowResize();
+                    }
+                } catch (err) {
+                    console.error('Error in windowResized:', err);
+                }
+            };
+
+            p.mousePressed = function() {
+                try {
+                    if (!controlsPanel) return true;
+                    if (controlsPanel.classList.contains('visible')) {
+                        const panelRect = controlsPanel.getBoundingClientRect();
+                        if (p.mouseX > panelRect.left && p.mouseX < panelRect.right && p.mouseY > panelRect.top && p.mouseY < panelRect.bottom) {
+                            return;
+                        }
+                    }
+                    if (!state.is3DMode) {
+                        if ((p.keyIsDown(p.CONTROL) || p.mouseButton === p.RIGHT) && p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) {
+                            state.isDraggingP5 = true;
+                            state.dragStartX_p5 = p.mouseX;
+                            state.dragStartY_p5 = p.mouseY;
+                            p.cursor('grabbing');
+                            return false;
+                        } else {
+                            state.isDraggingP5 = false;
+                        }
+                    }
+                    return true;
+                } catch (err) {
+                    console.error('Error in mousePressed:', err);
+                    return true;
+                }
+            };
+
+            p.mouseDragged = function() {
+                try {
+                    if (!state.is3DMode && state.isDraggingP5) {
+                        const deltaX = p.mouseX - state.dragStartX_p5;
+                        const deltaY = p.mouseY - state.dragStartY_p5;
+                        state.offsetX_p5 += deltaX;
+                        state.offsetY_p5 += deltaY;
+                        state.dragStartX_p5 = p.mouseX;
+                        state.dragStartY_p5 = p.mouseY;
+                        return false;
+                    }
+                    return true;
+                } catch (err) {
+                    console.error('Error in mouseDragged:', err);
+                    return true;
+                }
+            };
+
+            p.mouseReleased = function() {
+                try {
+                    if (!state.is3DMode && state.isDraggingP5) {
+                        state.isDraggingP5 = false;
+                        p.cursor(p.CROSS);
+                    }
+                    return true;
+                } catch (err) {
+                    console.error('Error in mouseReleased:', err);
+                    return true;
+                }
+            };
+
+            p.touchStarted = function() {
+                try {
+                    if (state.is3DMode) return true;
+                    if (!controlsPanel || !p.touches || p.touches.length === 0) return true;
+                    if (controlsPanel.classList.contains('visible')) {
+                        const panelRect = controlsPanel.getBoundingClientRect();
+                        if (p.touches[0].x > panelRect.left && p.touches[0].x < panelRect.right && p.touches[0].y > panelRect.top && p.touches[0].y < panelRect.bottom) {
+                            return;
+                        }
+                    }
+                    if (p.touches.length === 2) {
+                        state.isTouchPanningP5 = true;
+                        state.isDraggingP5 = true;
+                        state.dragStartX_p5 = (p.touches[0].x + p.touches[1].x) / 2;
+                        state.dragStartY_p5 = (p.touches[0].y + p.touches[1].y) / 2;
+                        p.cursor('grabbing');
+                        return false;
+                    } else if (p.touches.length === 1) {
+                        state.isDraggingP5 = false;
+                    }
+                    return true;
+                } catch (err) {
+                    console.error('Error in touchStarted:', err);
+                    return true;
+                }
+            };
+
+            p.touchMoved = function() {
+                try {
+                    if (state.is3DMode) return true;
+                    if (state.isTouchPanningP5 && p.touches.length === 2) {
+                        const currentTouchX = (p.touches[0].x + p.touches[1].x) / 2;
+                        const currentTouchY = (p.touches[0].y + p.touches[1].y) / 2;
+                        const deltaX = currentTouchX - state.dragStartX_p5;
+                        const deltaY = currentTouchY - state.dragStartY_p5;
+                        state.offsetX_p5 += deltaX;
+                        state.offsetY_p5 += deltaY;
+                        state.dragStartX_p5 = currentTouchX;
+                        state.dragStartY_p5 = currentTouchY;
+                        return false;
+                    }
+                    return true;
+                } catch (err) {
+                    console.error('Error in touchMoved:', err);
+                    return true;
+                }
+            };
+
+            p.touchEnded = function() {
+                try {
+                    if (state.is3DMode) return true;
+                    if (state.isTouchPanningP5) {
+                        if (!p.touches || p.touches.length < 2) {
+                            state.isTouchPanningP5 = false;
+                            state.isDraggingP5 = false;
+                            p.cursor(p.CROSS);
+                        }
+                    }
+                    return true;
+                } catch (err) {
+                    console.error('Error in touchEnded:', err);
+                    return true;
+                }
+            };
+        };
+
+        function setupDOMElements() {
+            try {
                 dimensionButton = document.getElementById('dimensionButton');
                 symmetrySlider = document.getElementById('symmetrySlider');
                 sizeSlider = document.getElementById('sizeSlider');
@@ -222,6 +673,19 @@
                 sizeValueSpan = document.getElementById('sizeValue');
                 fadeValueSpan = document.getElementById('fadeValue');
                 speedInfluenceValueSpan = document.getElementById('speedInfluenceValue');
+                loadingIndicator = document.getElementById('loading-indicator');
+                if (!dimensionButton || !controlsPanel) {
+                    throw new Error('Failed to find critical DOM elements');
+                }
+                console.log('DOM elements initialized');
+            } catch (err) {
+                console.error('Error in setupDOMElements:', err);
+            }
+        }
+
+        function attachEventListeners() {
+            try {
+                if (!dimensionButton || !controlsPanel) return;
                 dimensionButton.addEventListener('click', toggleDimensionMode);
                 symmetrySlider.addEventListener('input', updateSymmetry);
                 sizeSlider.addEventListener('input', updateMaxSize);
@@ -230,587 +694,675 @@
                 clearButton.addEventListener('click', clearActiveCanvas);
                 modeButton.addEventListener('click', toggleDrawingMode);
                 menuButton.addEventListener('click', toggleControls);
+                menuButton.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleControls();
+                    }
+                });
                 effectButton.addEventListener('click', toggleEffectMode);
                 paletteButton.addEventListener('click', cyclePalette);
                 saveButton.addEventListener('click', saveActiveCanvas);
                 autoDrawButton.addEventListener('click', toggleAutoDraw);
-                updateSymmetry(); updateMaxSize(); updateFade(); updateSpeedInfluence();
-                updatePaletteButtonText(); updateDrawingModeButtonText(); updateEffectModeButtonText();
+                updateSymmetry();
+                updateMaxSize();
+                updateFade();
+                updateSpeedInfluence();
+                updatePaletteButtonText();
+                updateDrawingModeButtonText();
+                updateEffectModeButtonText();
                 updateAutoDrawButtonText();
-                if (is3DMode) {
-                    setupThreeJS();
-                }
-            };
-            function initializeP5State() {
-                angle = p.TWO_PI / symmetry;
-                calculateDrawingRadius();
-                p.colorMode(p.HSB, 360, 100, 100, 100);
-                p.background(5);
-                offsetX_p5 = 0; offsetY_p5 = 0;
-                particles_p5 = [];
+                console.log('Event listeners attached');
+            } catch (err) {
+                console.error('Error in attachEventListeners:', err);
             }
-            p.draw = function() {
-                if (!is3DMode && p5Canvas) {
-                    draw2D();
-                }
-            };
-            function draw2D() {
-                let mappedFadeAlpha = p.map(fadeAmount, 0, 50, 0.1, 15);
-                p.background(5, 5, 5, mappedFadeAlpha);
-                p.translate(p.width / 2 + offsetX_p5, p.height / 2 + offsetY_p5);
-                let currentMouseX, currentMouseY, prevMouseX, prevMouseY;
-                if (autoDraw) {
-                    let noiseFactor = p.noise(autoDrawNoiseOffset);
-                    autoDrawRadius = p.map(p.noise(autoDrawNoiseOffset + 10), 0, 1, 0, drawingRadius * 0.9);
-                    autoDrawAngle += p.map(p.noise(autoDrawNoiseOffset + 20), 0, 1, -autoDrawSpeed, autoDrawSpeed) * 5;
-                    currentMouseX = autoDrawRadius * p.cos(autoDrawAngle);
-                    currentMouseY = autoDrawRadius * p.sin(autoDrawAngle);
-                    let prevAngle = autoDrawAngle - autoDrawSpeed * 5;
-                    let prevRadius = p.map(p.noise(autoDrawNoiseOffset + 10 - 0.01), 0, 1, 0, drawingRadius * 0.9);
-                    prevMouseX = prevRadius * p.cos(prevAngle);
-                    prevMouseY = prevRadius * p.sin(prevAngle);
-                    autoDrawNoiseOffset += 0.005;
-                } else {
-                    currentMouseX = p.mouseX - p.width / 2 - offsetX_p5;
-                    currentMouseY = p.mouseY - p.height / 2 - offsetY_p5;
-                    prevMouseX = p.pmouseX - p.width / 2 - offsetX_p5;
-                    prevMouseY = p.pmouseY - p.height / 2 - offsetY_p5;
-                }
-                let distFromCenter = p.dist(0, 0, currentMouseX, currentMouseY);
-                let shouldDraw = autoDraw || (p.mouseIsPressed && !isDraggingP5 && distFromCenter < drawingRadius && p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height);
-                if (shouldDraw) {
-                    let speed = autoDraw ? p.dist(currentMouseX, currentMouseY, prevMouseX, prevMouseY) * 5 : p.dist(currentMouseX, currentMouseY, prevMouseX, prevMouseY);
-                    speed = p.constrain(speed, 0, 50);
-                    let baseBrushSize = p.map(distFromCenter, 0, drawingRadius, minBrushSize, maxBrushSize);
-                    baseBrushSize = p.constrain(baseBrushSize, minBrushSize, maxBrushSize);
-                    let baseHue, saturation, brightness;
-                    let alpha = p.map(speed, 0, 30, 40, 100, true);
-                    if (currentPaletteIndex === 0) {
-                        let noiseHue = p.noise(currentMouseX * 0.005, currentMouseY * 0.005, p.frameCount * 0.001);
-                        baseHue = (hueValue + p.map(noiseHue, 0, 1, -90, 90) + speed * speedInfluence) % 360;
-                        saturation = p.map(speed, 0, 30, 70, 100, true);
-                        brightness = p.map(distFromCenter, 0, drawingRadius, 100, 60, true);
-                    } else {
-                        let paletteColors = palettes[currentPaletteIndex].colors;
-                        let noiseFactor = p.noise(distFromCenter * 0.01, p.frameCount * 0.005);
-                        let blendFactor = (distFromCenter / drawingRadius + noiseFactor) % 1.0;
-                        let index1 = p.floor(blendFactor * paletteColors.length) % paletteColors.length;
-                        let index2 = (index1 + 1) % paletteColors.length;
-                        let lerpAmt = (blendFactor * paletteColors.length) % 1.0;
-                        let c1 = p.color(paletteColors[index1][0], paletteColors[index1][1], paletteColors[index1][2]);
-                        let c2 = p.color(paletteColors[index2][0], paletteColors[index2][1], paletteColors[index2][2]);
-                        let lerpedColor = p.lerpColor(c1, c2, lerpAmt);
-                        baseHue = p.hue(lerpedColor);
-                        saturation = p.saturation(lerpedColor);
-                        brightness = p.brightness(lerpedColor);
-                        baseHue = (baseHue + speed * speedInfluence * 0.3 + p.frameCount * 0.1) % 360;
-                        saturation = p.constrain(saturation + speed * 1.5, 50, 100);
-                        brightness = p.constrain(brightness - distFromCenter * 0.05, 40, 100);
-                    }
-                    if (baseHue < 0) baseHue += 360;
-                    let currentBrushSize = baseBrushSize; let currentHue = baseHue;
-                    let currentSaturation = saturation; let currentBrightness = brightness;
-                    let jitterX = 0, jitterY = 0;
-                    if (effectMode === 1) {
-                        let pulse = p.sin(p.frameCount * 0.08 + distFromCenter * 0.03) * (maxBrushSize * 0.4) + (maxBrushSize * 0.1);
-                        currentBrushSize = p.max(minBrushSize, baseBrushSize + pulse);
-                        let colorPulse = p.sin(p.frameCount * 0.06 + distFromCenter * 0.02) * 30;
-                        currentHue = (baseHue + colorPulse) % 360;
-                        currentSaturation = p.constrain(saturation + p.abs(p.sin(p.frameCount * 0.1)) * 20, 60, 100);
-                        currentBrightness = p.constrain(brightness + p.abs(p.cos(p.frameCount * 0.09)) * 20, 50, 100);
-                    } else if (effectMode === 2) {
-                        currentHue = (baseHue + p.frameCount * 2.0) % 360; currentSaturation = 100; currentBrightness = 100; alpha = 95;
-                    } else if (effectMode === 3) {
-                        let jitterAmount = p.map(speed, 0, 20, 0.5, 5, true);
-                        jitterX = p.random(-jitterAmount, jitterAmount); jitterY = p.random(-jitterAmount, jitterAmount);
-                        currentBrushSize *= p.random(0.8, 1.2);
-                    }
-                    if (currentHue < 0) currentHue += 360;
-                    for (let i = 0; i < symmetry; i++) {
-                        p.push(); p.rotate(angle * i);
-                        let drawX = currentMouseX + jitterX; let drawY = currentMouseY + jitterY;
-                        let prevDrawX = prevMouseX + jitterX; let prevDrawY = prevMouseY + jitterY;
-                        p.strokeWeight(currentBrushSize); p.stroke(currentHue, currentSaturation, currentBrightness, alpha);
-                        if (drawingMode === 1 || drawingMode === 2) { p.fill(currentHue, currentSaturation, currentBrightness, alpha * 0.6); p.noStroke(); }
-                        else if (drawingMode === 4) { p.noStroke(); p.fill(currentHue, currentSaturation, currentBrightness, alpha * 0.8); }
-                        else { p.noFill(); }
-                        switch (drawingMode) {
-                            case 0: p.line(drawX, drawY, prevDrawX, prevDrawY); break;
-                            case 1: p.ellipse(drawX, drawY, currentBrushSize * 1.5, currentBrushSize * 1.5); break;
-                            case 2: let ts = currentBrushSize*2.0; p.push(); p.translate(drawX,drawY); p.rotate(p.atan2(drawY-prevDrawY, drawX-prevDrawX)); p.triangle(0,-ts/2,-ts/1.5,ts/2,ts/1.5,ts/2); p.pop(); break;
-                            case 3: p.noFill(); p.beginShape(); p.vertex(prevDrawX, prevDrawY); p.quadraticVertex((prevDrawX+drawX)/2+p.random(-5,5),(prevDrawY+drawY)/2+p.random(-5,5),drawX,drawY); p.endShape(); break;
-                            case 4: if (particles_p5.length < MAX_PARTICLES_P5) { particles_p5.push(new ParticleP5(p, drawX, drawY, currentHue, currentSaturation, currentBrightness, currentBrushSize)); } break;
-                            case 5: p.push(); p.translate(drawX,drawY); let na = p.noise(drawX*0.02,drawY*0.02,p.frameCount*0.01)*p.TWO_PI*4; let ll = currentBrushSize*p.map(speed,0,20,1,3,true); p.line(0,0,p.cos(na)*ll,p.sin(na)*ll); p.pop(); break;
-                        }
-                        p.push(); p.scale(1, -1);
-                        p.strokeWeight(currentBrushSize); p.stroke(currentHue, currentSaturation, currentBrightness, alpha * 0.8);
-                        if (drawingMode === 1 || drawingMode === 2) { p.fill(currentHue, currentSaturation, currentBrightness, alpha * 0.4); p.noStroke(); }
-                        else if (drawingMode === 4) {  } else { p.noFill(); }
-                        switch (drawingMode) {
-                            case 0: p.line(drawX, drawY, prevDrawX, prevDrawY); break;
-                            case 1: p.ellipse(drawX, drawY, currentBrushSize * 1.5, currentBrushSize * 1.5); break;
-                            case 2: let ts = currentBrushSize*2.0; p.push(); p.translate(drawX,drawY); p.rotate(p.atan2(drawY-prevDrawY, drawX-prevDrawX)); p.triangle(0,-ts/2,-ts/1.5,ts/2,ts/1.5,ts/2); p.pop(); break;
-                            case 3: p.noFill(); p.beginShape(); p.vertex(prevDrawX, prevDrawY); p.quadraticVertex((prevDrawX+drawX)/2+p.random(-5,5),(prevDrawY+drawY)/2+p.random(-5,5),drawX,drawY); p.endShape(); break;
-                            case 5: p.push(); p.translate(drawX,drawY); let na = p.noise(drawX*0.02,drawY*0.02,p.frameCount*0.01)*p.TWO_PI*4; let ll = currentBrushSize*p.map(speed,0,20,1,3,true); p.line(0,0,p.cos(na)*ll,p.sin(na)*ll); p.pop(); break;
-                        }
-                        p.pop();
-                        p.pop();
-                    }
-                    hueValue = (hueValue + 0.05 + speed * 0.005) % 360;
-                    if (hueValue < 0) hueValue += 360;
-                }
-                if (drawingMode === 4) {
-                    for (let i = particles_p5.length - 1; i >= 0; i--) {
-                        particles_p5[i].update(); particles_p5[i].display();
-                        if (particles_p5[i].isFinished()) { particles_p5.splice(i, 1); }
-                    }
-                }
-                p.resetMatrix();
+        }
+
+        function updateSymmetry() {
+            try {
+                if (!symmetrySlider || !symmetryValueSpan) return;
+                state.symmetry = parseInt(symmetrySlider.value);
+                state.angle = utils.TWO_PI / state.symmetry;
+                symmetryValueSpan.innerHTML = state.symmetry;
+            } catch (err) {
+                console.error('Error in updateSymmetry:', err);
             }
-            p.windowResized = function() {
-                if (!is3DMode && p5Canvas) {
-                    p.resizeCanvas(p.windowWidth, p.windowHeight);
-                    calculateDrawingRadius();
-                    p.background(5);
-                    offsetX_p5 = 0; offsetY_p5 = 0;
-                } else if (is3DMode && renderer) {
-                    onThreeJSWindowResize();
+        }
+
+        function updateMaxSize() {
+            try {
+                if (!sizeSlider || !sizeValueSpan) return;
+                state.maxBrushSize = parseFloat(sizeSlider.value);
+                state.minBrushSize = Math.max(1, state.maxBrushSize * 0.1);
+                sizeValueSpan.innerHTML = state.maxBrushSize.toFixed(0);
+            } catch (err) {
+                console.error('Error in updateMaxSize:', err);
+            }
+        }
+
+        function updateFade() {
+            try {
+                if (!fadeSlider || !fadeValueSpan) return;
+                state.fadeAmount = parseFloat(fadeSlider.value);
+                fadeValueSpan.innerHTML = state.fadeAmount.toFixed(1);
+            } catch (err) {
+                console.error('Error in updateFade:', err);
+            }
+        }
+
+        function updateSpeedInfluence() {
+            try {
+                if (!speedInfluenceSlider || !speedInfluenceValueSpan) return;
+                state.speedInfluence = parseFloat(speedInfluenceSlider.value);
+                speedInfluenceValueSpan.innerHTML = state.speedInfluence.toFixed(1);
+            } catch (err) {
+                console.error('Error in updateSpeedInfluence:', err);
+            }
+        }
+
+        function toggleDrawingMode() {
+            try {
+                state.drawingMode = (state.drawingMode + 1) % 6;
+                updateDrawingModeButtonText();
+                if (!state.is3DMode) particles_p5 = [];
+            } catch (err) {
+                console.error('Error in toggleDrawingMode:', err);
+            }
+        }
+
+        function getDrawingModeText(mode) {
+            return ["Shape: Lines", "Shape: Circles", "Shape: Triangles", "Shape: Curves", "Shape: Particles", "Shape: Noise Lines"][mode % 6];
+        }
+
+        function updateDrawingModeButtonText() {
+            try {
+                if (modeButton) modeButton.innerHTML = getDrawingModeText(state.drawingMode);
+            } catch (err) {
+                console.error('Error in updateDrawingModeButtonText:', err);
+            }
+        }
+
+        function toggleEffectMode() {
+            try {
+                state.effectMode = (state.effectMode + 1) % 4;
+                updateEffectModeButtonText();
+            } catch (err) {
+                console.error('Error in toggleEffectMode:', err);
+            }
+        }
+
+        function getEffectModeText(mode) {
+            return ["Effect: None", "Effect: Pulsating", "Effect: Color Cycle", "Effect: Jitter"][mode % 4];
+        }
+
+        function updateEffectModeButtonText() {
+            try {
+                if (effectButton) effectButton.innerHTML = getEffectModeText(state.effectMode);
+            } catch (err) {
+                console.error('Error in updateEffectModeButtonText:', err);
+            }
+        }
+
+        function cyclePalette() {
+            try {
+                state.currentPaletteIndex = (state.currentPaletteIndex + 1) % palettes.length;
+                updatePaletteButtonText();
+            } catch (err) {
+                console.error('Error in cyclePalette:', err);
+            }
+        }
+
+        function updatePaletteButtonText() {
+            try {
+                if (paletteButton) paletteButton.innerHTML = "Palette: " + palettes[state.currentPaletteIndex].name;
+            } catch (err) {
+                console.error('Error in updatePaletteButtonText:', err);
+            }
+        }
+
+        function toggleAutoDraw() {
+            try {
+                state.autoDraw = !state.autoDraw;
+                updateAutoDrawButtonText();
+                if (state.autoDraw) {
+                    state.autoDrawAngle = utils.random(0, utils.TWO_PI);
+                    state.autoDrawRadius = utils.random(state.drawingRadius * 0.2, state.drawingRadius * 0.8);
+                    state.autoDrawNoiseOffset = utils.random(0, 1000);
                 }
-            };
-            p.mousePressed = function() {
-                if (controlsPanel && controlsPanel.classList.contains('visible')) {
-                    let panelRect = controlsPanel.getBoundingClientRect();
-                    if (p.mouseX > panelRect.left && p.mouseX < panelRect.right && p.mouseY > panelRect.top && p.mouseY < panelRect.bottom) { return; }
-                }
-                if (!is3DMode) {
-                    if ((p.keyIsDown(p.CONTROL) || p.mouseButton === p.RIGHT) && p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) {
-                        isDraggingP5 = true;
-                        dragStartX_p5 = p.mouseX; dragStartY_p5 = p.mouseY;
-                        p.cursor('grabbing');
-                        return false;
-                    } else {
-                        isDraggingP5 = false;
-                    }
-                }
-                return true;
-            };
-            p.mouseDragged = function() {
-                if (!is3DMode && isDraggingP5) {
-                    let deltaX = p.mouseX - dragStartX_p5; let deltaY = p.mouseY - dragStartY_p5;
-                    offsetX_p5 += deltaX; offsetY_p5 += deltaY;
-                    dragStartX_p5 = p.mouseX; dragStartY_p5 = p.mouseY;
-                    return false;
-                }
-                return true;
-            };
-            p.mouseReleased = function() {
-                if (!is3DMode && isDraggingP5) {
-                    isDraggingP5 = false;
-                    p.cursor(p.CROSS);
-                }
-                return true;
-            };
-            p.touchStarted = function() {
-                if (is3DMode) return true;
-                if (controlsPanel && controlsPanel.classList.contains('visible') && p.touches.length > 0) {
-                    let panelRect = controlsPanel.getBoundingClientRect();
-                    if (p.touches[0].x > panelRect.left && p.touches[0].x < panelRect.right && p.touches[0].y > panelRect.top && p.touches[0].y < panelRect.bottom) { return; }
-                }
-                if (p.touches.length === 2) {
-                    isTouchPanningP5 = true; isDraggingP5 = true;
-                    dragStartX_p5 = (p.touches[0].x + p.touches[1].x) / 2;
-                    dragStartY_p5 = (p.touches[0].y + p.touches[1].y) / 2;
-                    p.cursor('grabbing');
-                    return false;
-                } else if (p.touches.length === 1) {
-                     isDraggingP5 = false;
-                }
-                return true;
-            };
-            p.touchMoved = function() {
-                if (is3DMode) return true;
-                if (isTouchPanningP5 && p.touches.length === 2) {
-                    let currentTouchX = (p.touches[0].x + p.touches[1].x) / 2;
-                    let currentTouchY = (p.touches[0].y + p.touches[1].y) / 2;
-                    let deltaX = currentTouchX - dragStartX_p5;
-                    let deltaY = currentTouchY - dragStartY_p5;
-                    offsetX_p5 += deltaX; offsetY_p5 += deltaY;
-                    dragStartX_p5 = currentTouchX; dragStartY_p5 = currentTouchY;
-                    return false;
-                }
-                return true;
-            };
-            p.touchEnded = function() {
-                if (is3DMode) return true;
-                if (isTouchPanningP5) {
-                    if (p.touches.length < 2) {
-                        isTouchPanningP5 = false; isDraggingP5 = false;
-                        p.cursor(p.CROSS);
-                    }
-                }
-                 return true;
-            };
-        };
-        let myp5 = new p5(sketch);
-        const safeP5Value = (funcName, ...args) => myp5 && typeof myp5[funcName] === 'function' ? myp5[funcName](...args) : (args[0] || 0);
-        const safeP5Exists = () => myp5 && typeof myp5.random === 'function';
-        function updateSymmetry() { symmetry = parseInt(symmetrySlider.value); angle = Math.PI * 2 / symmetry; symmetryValueSpan.innerHTML = symmetry; }
-        function updateMaxSize() { maxBrushSize = parseFloat(sizeSlider.value); minBrushSize = Math.max(1, maxBrushSize * 0.1); sizeValueSpan.innerHTML = maxBrushSize.toFixed(0); }
-        function updateFade() { fadeAmount = parseFloat(fadeSlider.value); fadeValueSpan.innerHTML = fadeAmount.toFixed(1); }
-        function updateSpeedInfluence() { speedInfluence = parseFloat(speedInfluenceSlider.value); speedInfluenceValueSpan.innerHTML = speedInfluence.toFixed(1); }
-        function toggleDrawingMode() { drawingMode = (drawingMode + 1) % 6; updateDrawingModeButtonText(); if (!is3DMode) particles_p5 = []; }
-        function getDrawingModeText(mode) { return ["Shape: Lines", "Shape: Circles", "Shape: Triangles", "Shape: Curves", "Shape: Particles", "Shape: Noise Lines"][mode % 6]; }
-        function updateDrawingModeButtonText() { if (modeButton) modeButton.innerHTML = getDrawingModeText(drawingMode); }
-        function toggleEffectMode() { effectMode = (effectMode + 1) % 4; updateEffectModeButtonText(); }
-        function getEffectModeText(mode) { return ["Effect: None", "Effect: Pulsating", "Effect: Color Cycle", "Effect: Jitter"][mode % 4]; }
-        function updateEffectModeButtonText() { if (effectButton) effectButton.innerHTML = getEffectModeText(effectMode); }
-        function cyclePalette() { currentPaletteIndex = (currentPaletteIndex + 1) % palettes.length; updatePaletteButtonText(); }
-        function updatePaletteButtonText() { if (paletteButton) paletteButton.innerHTML = "Palette: " + palettes[currentPaletteIndex].name; }
-        function toggleAutoDraw() { autoDraw = !autoDraw; updateAutoDrawButtonText(); if (autoDraw) { autoDrawAngle = Math.random() * Math.PI * 2; autoDrawRadius = Math.random() * (drawingRadius * 0.6) + drawingRadius * 0.2; autoDrawNoiseOffset = Math.random() * 1000; } }
-        function updateAutoDrawButtonText() { if (autoDrawButton) autoDrawButton.innerHTML = "Auto Draw: " + (autoDraw ? "ON" : "OFF"); }
-        function toggleControls() { if (controlsPanel) controlsPanel.classList.toggle('visible'); if (menuButton) menuButton.innerHTML = controlsPanel.classList.contains('visible') ? 'Close Menu' : 'Menu'; }
-        function calculateDrawingRadius() { drawingRadius = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.9; }
+            } catch (err) {
+                console.error('Error in toggleAutoDraw:', err);
+            }
+        }
+
+        function updateAutoDrawButtonText() {
+            try {
+                if (autoDrawButton) autoDrawButton.innerHTML = "Auto Draw: " + (state.autoDraw ? "ON" : "OFF");
+            } catch (err) {
+                console.error('Error in updateAutoDrawButtonText:', err);
+            }
+        }
+
+        function toggleControls() {
+            try {
+                if (!controlsPanel || !menuButton) return;
+                controlsPanel.classList.toggle('visible');
+                menuButton.innerHTML = controlsPanel.classList.contains('visible') ? 'Close Menu' : 'Menu';
+                menuButton.setAttribute('aria-expanded', controlsPanel.classList.contains('visible'));
+            } catch (err) {
+                console.error('Error in toggleControls:', err);
+            }
+        }
+
+        function calculateDrawingRadius() {
+            try {
+                state.drawingRadius = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.9;
+            } catch (err) {
+                console.error('Error in calculateDrawingRadius:', err);
+            }
+        }
+
         function toggleDimensionMode() {
-            is3DMode = !is3DMode;
-            if (dimensionButton) dimensionButton.innerHTML = is3DMode ? "Mode: 3D" : "Mode: 2D";
-            if (is3DMode) {
-                if (myp5 && myp5.remove) {
-                    myp5.remove();
-                    p5Canvas = null;
+            try {
+                if (!loadingIndicator) return;
+                loadingIndicator.style.display = 'block';
+                state.is3DMode = !state.is3DMode;
+                if (dimensionButton) dimensionButton.innerHTML = state.is3DMode ? "Mode: 3D" : "Mode: 2D";
+                if (state.is3DMode) {
+                    if (myp5 && myp5.remove) {
+                        myp5.remove();
+                        p5Canvas = null;
+                        myp5 = null;
+                    } else {
+                        const oldCanvas = document.getElementById('defaultCanvas0');
+                        if (oldCanvas) oldCanvas.remove();
+                    }
+                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                    cleanupThreeJS();
+                    setTimeout(setupThreeJS, 50); // Delay to ensure cleanup completes
                 } else {
-                    const oldCanvas = document.getElementById('defaultCanvas0');
-                    if (oldCanvas) oldCanvas.remove();
+                    cleanupThreeJS();
+                    setTimeout(() => {
+                        myp5 = new p5(sketch);
+                    }, 50); // Delay to ensure cleanup completes
                 }
-                if (animationFrameId) cancelAnimationFrame(animationFrameId);
-                cleanupThreeJS();
-                setupThreeJS();
-            } else {
-                cleanupThreeJS();
-                myp5 = new p5(sketch);
+                setTimeout(() => {
+                    clearActiveCanvas();
+                    if (loadingIndicator) loadingIndicator.style.display = 'none';
+                }, 100);
+            } catch (err) {
+                console.error('Error in toggleDimensionMode:', err);
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
             }
-            setTimeout(clearActiveCanvas, 100);
         }
+
         function clearActiveCanvas() {
-            if (is3DMode) {
-                clearThreeJSScene();
-            } else if (myp5 && myp5.canvas) {
-                myp5.background(5);
-                particles_p5 = [];
-                offsetX_p5 = 0; offsetY_p5 = 0;
+            try {
+                if (state.is3DMode) {
+                    clearThreeJSScene();
+                } else if (myp5 && myp5.canvas) {
+                    myp5.background(5);
+                    particles_p5 = [];
+                    state.offsetX_p5 = 0;
+                    state.offsetY_p5 = 0;
+                }
+                state.hueValue = utils.random(0, 360);
+            } catch (err) {
+                console.error('Error in clearActiveCanvas:', err);
             }
-            hueValue = safeP5Exists() ? myp5.random(360) : Math.random() * 360;
         }
+
         function saveActiveCanvas() {
-            const now = new Date();
-            const timestamp = now.getFullYear() +
-                           ('0' + (now.getMonth() + 1)).slice(-2) +
-                           ('0' + now.getDate()).slice(-2) + "_" +
-                           ('0' + now.getHours()).slice(-2) +
-                           ('0' + now.getMinutes()).slice(-2) +
-                           ('0' + now.getSeconds()).slice(-2);
-            if (is3DMode && renderer) {
-                try {
+            try {
+                if (!myp5 && !renderer) return;
+                const now = new Date();
+                const timestamp = now.getFullYear() +
+                                ('0' + (now.getMonth() + 1)).slice(-2) +
+                                ('0' + now.getDate()).slice(-2) + "_" +
+                                ('0' + now.getHours()).slice(-2) +
+                                ('0' + now.getMinutes()).slice(-2) +
+                                ('0' + now.getSeconds()).slice(-2);
+                if (state.is3DMode && renderer && scene && camera) {
                     renderer.render(scene, camera);
                     const dataURL = renderer.domElement.toDataURL('image/png');
                     const link = document.createElement('a');
                     link.download = 'kaleidoscope3D_' + timestamp + '.png';
                     link.href = dataURL;
                     link.click();
-                } catch (e) {
-                    alert("Could not save 3D canvas. Your browser might have security restrictions (tainted canvas).");
+                } else if (!state.is3DMode && myp5 && myp5.saveCanvas) {
+                    myp5.saveCanvas('kaleidoscope2D_' + timestamp, 'png');
                 }
-            } else if (!is3DMode && myp5 && myp5.saveCanvas) {
-                myp5.saveCanvas('kaleidoscope2D_' + timestamp, 'png');
+            } catch (err) {
+                console.error('Error in saveActiveCanvas:', err);
+                alert('Could not save canvas. Please try again.');
             }
         }
+
         function setupThreeJS() {
-             if (!threeContainer) {
-                 threeContainer = document.createElement('div');
-                 threeContainer.id = 'threejs-container';
-                 document.body.appendChild(threeContainer);
-             }
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x050505);
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            calculateDrawingRadius();
-            camera.position.z = drawingRadius ? drawingRadius * 1.5 : 300;
-            renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.domElement.id = 'threejs-canvas';
-            renderer.domElement.style.position = 'absolute';
-            renderer.domElement.style.top = '0';
-            renderer.domElement.style.left = '0';
-            renderer.domElement.style.zIndex = '1';
-            while (threeContainer.firstChild) {
-                threeContainer.removeChild(threeContainer.firstChild);
-            }
-            threeContainer.appendChild(renderer.domElement);
-            const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
-            scene.add(ambientLight);
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-            directionalLight.position.set(0.5, 0.8, 1);
-            scene.add(directionalLight);
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.1;
-            controls.screenSpacePanning = false;
-            renderer.domElement.addEventListener('pointerdown', onThreeJSPointerDown, false);
-            renderer.domElement.addEventListener('pointermove', onThreeJSPointerMove, false);
-            renderer.domElement.addEventListener('pointerup', onThreeJSPointerUp, false);
-            window.addEventListener('resize', onThreeJSWindowResize, false);
-            animateThreeJS();
-        }
-        function animateThreeJS() {
-            animationFrameId = requestAnimationFrame(animateThreeJS);
-            controls.update();
-            if (autoDraw && scene) {
-                drawKaleidoscope3D(true);
-            }
-            if (renderer && scene && camera) {
-               renderer.render(scene, camera);
-            }
-        }
-        function cleanupThreeJS() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-             window.removeEventListener('resize', onThreeJSWindowResize);
-            if (renderer && renderer.domElement) {
-                 renderer.domElement.removeEventListener('pointerdown', onThreeJSPointerDown);
-                 renderer.domElement.removeEventListener('pointermove', onThreeJSPointerMove);
-                 renderer.domElement.removeEventListener('pointerup', onThreeJSPointerUp);
-            }
-             scene?.traverse(object => {
-                 if (!object.isMesh) return;
-                 object.geometry?.dispose();
-                 if (object.material) {
-                     if (Array.isArray(object.material)) {
-                         object.material.forEach(material => material.dispose());
-                     } else {
-                         object.material.dispose();
-                     }
-                 }
-             });
-             threeObjects = [];
-            if (renderer) {
-                if (renderer.domElement && renderer.domElement.parentNode) {
-                    renderer.domElement.parentNode.removeChild(renderer.domElement);
+            try {
+                if (!window.THREE) throw new Error('Three.js not loaded');
+                if (!threeContainer) {
+                    threeContainer = document.createElement('div');
+                    threeContainer.id = 'threejs-container';
+                    document.body.appendChild(threeContainer);
                 }
-                renderer.dispose();
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x050505);
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                calculateDrawingRadius();
+                camera.position.z = state.drawingRadius ? state.drawingRadius * 1.5 : 300;
+                renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+                if (!renderer.getContext()) throw new Error('WebGL not supported');
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.domElement.id = 'threejs-canvas';
+                renderer.domElement.style.position = 'absolute';
+                renderer.domElement.style.top = '0';
+                renderer.domElement.style.left = '0';
+                renderer.domElement.style.zIndex = '1';
+                while (threeContainer.firstChild) {
+                    threeContainer.removeChild(threeContainer.firstChild);
+                }
+                threeContainer.appendChild(renderer.domElement);
+
+                const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
+                scene.add(ambientLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                directionalLight.position.set(0.5, 0.8, 1);
+                scene.add(directionalLight);
+
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.1;
+                controls.screenSpacePanning = false;
+
+                renderer.domElement.addEventListener('pointerdown', onThreeJSPointerDown, { passive: false });
+                renderer.domElement.addEventListener('pointermove', onThreeJSPointerMove, { passive: true });
+                renderer.domElement.addEventListener('pointerup', onThreeJSPointerUp, { passive: false });
+                window.addEventListener('resize', onThreeJSWindowResize, { passive: true });
+
+                animateThreeJS();
+                console.log('Three.js setup completed');
+            } catch (err) {
+                console.error('Error in setupThreeJS:', err);
+                alert('Failed to initialize Three.js. Check console for details.');
             }
-            controls?.dispose();
-            scene = null; camera = null; renderer = null; controls = null;
         }
-        function clearThreeJSScene() {
-             if (!scene) return;
-             threeObjects.forEach(obj => scene.remove(obj));
-             threeObjects.forEach(group => {
-                group.traverse(object => {
-                    if (object.isMesh) {
-                        object.geometry?.dispose();
-                        if (object.material) {
-                             if (Array.isArray(object.material)) {
-                                 object.material.forEach(material => material.dispose());
-                             } else {
-                                 object.material.dispose();
-                             }
-                         }
+
+        function animateThreeJS() {
+            try {
+                animationFrameId = requestAnimationFrame(animateThreeJS);
+                if (!scene || !camera || !renderer || !controls) return;
+                controls.update();
+                if (state.autoDraw) {
+                    drawKaleidoscope3D(true);
+                }
+                // Fade out old objects safely
+                const objectsToRemove = [];
+                threeObjects.forEach((obj, index) => {
+                    if (!obj) return;
+                    obj.traverse(mesh => {
+                        if (mesh.isMesh && mesh.material) {
+                            mesh.material.opacity = utils.lerp(mesh.material.opacity || 1, 0, 0.005);
+                            if (mesh.material.opacity < 0.01) {
+                                objectsToRemove.push(index);
+                            }
+                        }
+                    });
+                });
+                // Remove objects in reverse order to avoid index issues
+                objectsToRemove.reverse().forEach(index => {
+                    const obj = threeObjects[index];
+                    if (obj && scene) {
+                        scene.remove(obj);
+                        disposeObject(obj);
+                        threeObjects.splice(index, 1);
                     }
                 });
-             });
-             threeObjects = [];
+                renderer.render(scene, camera);
+            } catch (err) {
+                console.error('Error in animateThreeJS:', err);
+            }
         }
-         function onThreeJSWindowResize() {
-             if (!camera || !renderer) return;
-             camera.aspect = window.innerWidth / window.innerHeight;
-             camera.updateProjectionMatrix();
-             renderer.setSize(window.innerWidth, window.innerHeight);
-         }
-        function drawKaleidoscope3D(isAuto = false) {
-            if (!scene || !renderer) return;
-            let drawX, drawY;
-            let currentFrameCount = renderer.info.render.frame;
-            if (isAuto) {
-                let noiseVal = safeP5Exists() ? myp5.noise(autoDrawNoiseOffset) : Math.random();
-                let noiseVal10 = safeP5Exists() ? myp5.noise(autoDrawNoiseOffset + 10) : Math.random();
-                let noiseVal20 = safeP5Exists() ? myp5.noise(autoDrawNoiseOffset + 20) : Math.random();
-                autoDrawRadius = map(noiseVal10, 0, 1, 0, drawingRadius * 0.8);
-                autoDrawAngle += map(noiseVal20, 0, 1, -autoDrawSpeed, autoDrawSpeed) * 4;
-                drawX = autoDrawRadius * Math.cos(autoDrawAngle);
-                drawY = autoDrawRadius * Math.sin(autoDrawAngle);
-                autoDrawNoiseOffset += 0.005;
-            } else {
-                drawX = mouseClickX3D - window.innerWidth / 2;
-                drawY = -(mouseClickY3D - window.innerHeight / 2);
-            }
-            let distFromCenter = Math.sqrt(drawX * drawX + drawY * drawY);
-            let speed = isAuto ? 10 : 5;
-            let baseSize = map(distFromCenter, 0, drawingRadius, minBrushSize * 0.5, maxBrushSize * 0.5);
-            baseSize = constrain(baseSize, minBrushSize * 0.5, maxBrushSize * 0.5);
-            let baseHue, saturation, brightness;
-            if (currentPaletteIndex === 0) {
-                let noiseHueVal = safeP5Exists() ? myp5.noise(drawX * 0.005, drawY * 0.005, currentFrameCount * 0.001) : Math.random();
-                baseHue = (hueValue + map(noiseHueVal, 0, 1, -90, 90) + speed * speedInfluence) % 360;
-                saturation = map(speed, 0, 30, 0.7, 1.0, true);
-                brightness = map(distFromCenter, 0, drawingRadius, 1.0, 0.6, true);
-            } else {
-                let paletteColors = palettes[currentPaletteIndex].colors;
-                let noiseFactor = safeP5Exists() ? myp5.noise(distFromCenter * 0.01, currentFrameCount * 0.005) : Math.random();
-                let blendFactor = (distFromCenter / drawingRadius + noiseFactor) % 1.0;
-                let index1 = floor(blendFactor * paletteColors.length) % paletteColors.length;
-                let index2 = (index1 + 1) % paletteColors.length;
-                let lerpAmt = (blendFactor * paletteColors.length) % 1.0;
-                let h1 = paletteColors[index1][0]; let s1 = paletteColors[index1][1]/100; let b1 = paletteColors[index1][2]/100;
-                let h2 = paletteColors[index2][0]; let s2 = paletteColors[index2][1]/100; let b2 = paletteColors[index2][2]/100;
-                if (Math.abs(h1 - h2) > 180) { if (h1 < h2) h1 += 360; else h2 += 360; }
-                baseHue = (lerp(h1, h2, lerpAmt) + speed * speedInfluence * 0.3 + currentFrameCount * 0.1) % 360;
-                saturation = constrain(lerp(s1, s2, lerpAmt) + speed * 0.015, 0.5, 1.0);
-                brightness = constrain(lerp(b1, b2, lerpAmt) - distFromCenter * 0.0005, 0.4, 1.0);
-            }
-            if (baseHue < 0) baseHue += 360;
-            let currentSize = baseSize; let currentHue = baseHue;
-            let currentSaturation = saturation; let currentBrightness = brightness;
-            const now = Date.now();
-            if (effectMode === 1) {
-                let pulse = Math.sin(now * 0.008 + distFromCenter * 0.03) * (maxBrushSize * 0.2) + (maxBrushSize * 0.05);
-                currentSize = Math.max(minBrushSize * 0.2, baseSize + pulse);
-                let colorPulse = Math.sin(now * 0.006 + distFromCenter * 0.02) * 30;
-                currentHue = (baseHue + colorPulse) % 360;
-            } else if (effectMode === 2) {
-                 currentHue = (baseHue + now * 0.2) % 360;
-                 currentSaturation = 1.0; currentBrightness = 0.8;
-            }
-            if (currentHue < 0) currentHue += 360;
-            const baseObject = new THREE.Group();
-            for (let i = 0; i < symmetry; i++) {
-                let segmentAngle = angle * i;
-                let geometry; let size = currentSize;
-                switch (drawingMode) {
-                    case 0: geometry = new THREE.BoxGeometry(size * 0.5, size * 0.5, constrain(speed * 0.5, 2, 20)); break;
-                    case 1: geometry = new THREE.SphereGeometry(size * 1.2, 16, 12); break;
-                    case 2: geometry = new THREE.TorusGeometry(size * 1.0, size * 0.4, 16, 24); break;
-                    case 3: geometry = new THREE.BoxGeometry(size, size, size); break;
-                    case 4: geometry = new THREE.SphereGeometry(size * 0.8, 8, 6); break;
-                    case 5: geometry = new THREE.BoxGeometry(size, size, size); break;
-                    default: geometry = new THREE.BoxGeometry(size, size, size);
-                }
-                const material = new THREE.MeshStandardMaterial();
-                material.color.setHSL(currentHue / 360, currentSaturation, currentBrightness);
-                material.roughness = 0.6; material.metalness = 0.2;
-                const mesh = new THREE.Mesh(geometry, material);
-                let xPos = drawX; let yPos = drawY;
-                let zPos = map(Math.sin(now * 0.0002 + segmentAngle), -1, 1, -currentSize * 2, currentSize * 2);
-                if (effectMode === 3) {
-                     let jitterAmount3D = currentSize * 0.5;
-                     xPos += (Math.random() - 0.5) * 2 * jitterAmount3D;
-                     yPos += (Math.random() - 0.5) * 2 * jitterAmount3D;
-                     zPos += (Math.random() - 0.5) * 2 * jitterAmount3D;
-                }
-                mesh.position.set(xPos, yPos, zPos);
-                mesh.rotation.x = now * 0.0001 + speed * 0.01 + segmentAngle * 0.5;
-                mesh.rotation.y = now * 0.00015 + speed * 0.015 + segmentAngle * 0.7;
-                const pivot = new THREE.Object3D();
-                pivot.add(mesh);
-                pivot.rotation.z = segmentAngle;
-                baseObject.add(pivot);
-            }
-            scene.add(baseObject);
-            threeObjects.push(baseObject);
-             hueValue = (hueValue + 0.05 + speed * 0.005) % 360;
-             if (hueValue < 0) hueValue += 360;
-             const MAX_3D_OBJECT_GROUPS = 150;
-             while (threeObjects.length > MAX_3D_OBJECT_GROUPS) {
-                 let oldestGroup = threeObjects.shift();
-                 scene.remove(oldestGroup);
-                 oldestGroup.traverse(object => {
+
+        function disposeObject(obj) {
+            try {
+                if (!obj) return;
+                obj.traverse(object => {
                     if (!object.isMesh) return;
-                    object.geometry?.dispose();
+                    if (object.geometry) object.geometry.dispose();
                     if (object.material) {
-                        if (Array.isArray(object.material)) object.material.forEach(m => m.dispose());
-                        else object.material.dispose();
+                        if (Array.isArray(object.material)) {
+                            object.material.forEach(material => material.dispose());
+                        } else {
+                            object.material.dispose();
+                        }
                     }
-                 });
-             }
+                });
+            } catch (err) {
+                console.error('Error in disposeObject:', err);
+            }
         }
+
+        function cleanupThreeJS() {
+            try {
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                window.removeEventListener('resize', onThreeJSWindowResize);
+                if (renderer && renderer.domElement) {
+                    renderer.domElement.removeEventListener('pointerdown', onThreeJSPointerDown);
+                    renderer.domElement.removeEventListener('pointermove', onThreeJSPointerMove);
+                    renderer.domElement.removeEventListener('pointerup', onThreeJSPointerUp);
+                }
+                if (scene) {
+                    scene.traverse(disposeObject);
+                }
+                threeObjects = [];
+                if (renderer) {
+                    if (renderer.domElement && renderer.domElement.parentNode) {
+                        renderer.domElement.parentNode.removeChild(renderer.domElement);
+                    }
+                    renderer.dispose();
+                }
+                if (controls) controls.dispose();
+                scene = null;
+                camera = null;
+                renderer = null;
+                controls = null;
+                console.log('Three.js cleaned up');
+            } catch (err) {
+                console.error('Error in cleanupThreeJS:', err);
+            }
+        }
+
+        function clearThreeJSScene() {
+            try {
+                if (!scene) return;
+                threeObjects.forEach(obj => {
+                    if (obj) {
+                        scene.remove(obj);
+                        disposeObject(obj);
+                    }
+                });
+                threeObjects = [];
+            } catch (err) {
+                console.error('Error in clearThreeJSScene:', err);
+            }
+        }
+
+        function onThreeJSWindowResize() {
+            try {
+                if (!camera || !renderer) return;
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            } catch (err) {
+                console.error('Error in onThreeJSWindowResize:', err);
+            }
+        }
+
+        function drawKaleidoscope3D(isAuto = false) {
+            try {
+                if (!scene || !renderer || !camera) return;
+                let drawX, drawY;
+                const currentFrameCount = renderer.info.render.frame;
+                if (isAuto) {
+                    const noiseVal = utils.noise(state.autoDrawNoiseOffset);
+                    const noiseVal10 = utils.noise(state.autoDrawNoiseOffset + 10);
+                    const noiseVal20 = utils.noise(state.autoDrawNoiseOffset + 20);
+                    state.autoDrawRadius = utils.map(noiseVal10, 0, 1, 0, state.drawingRadius * 0.8);
+                    state.autoDrawAngle += utils.map(noiseVal20, 0, 1, -state.autoDrawSpeed, state.autoDrawSpeed) * 4;
+                    drawX = state.autoDrawRadius * utils.cos(state.autoDrawAngle);
+                    drawY = state.autoDrawRadius * utils.sin(state.autoDrawAngle);
+                    state.autoDrawNoiseOffset += 0.005;
+                } else {
+                    drawX = state.mouseClickX3D - window.innerWidth / 2;
+                    drawY = -(state.mouseClickY3D - window.innerHeight / 2);
+                }
+
+                const distFromCenter = utils.sqrt(drawX * drawX + drawY * drawY);
+                const speed = isAuto ? 10 : 5;
+                let baseSize = utils.map(distFromCenter, 0, state.drawingRadius, state.minBrushSize * 0.5, state.maxBrushSize * 0.5);
+                baseSize = utils.constrain(baseSize, state.minBrushSize * 0.5, state.maxBrushSize * 0.5);
+                let baseHue, saturation, brightness;
+
+                if (state.currentPaletteIndex === 0) {
+                    const noiseHueVal = utils.noise(drawX * 0.005, drawY * 0.005, currentFrameCount * 0.001);
+                    baseHue = (state.hueValue + utils.map(noiseHueVal, 0, 1, -90, 90) + speed * state.speedInfluence) % 360;
+                    saturation = utils.map(speed, 0, 30, 0.7, 1.0, true);
+                    brightness = utils.map(distFromCenter, 0, state.drawingRadius, 1.0, 0.6, true);
+                } else {
+                    const paletteColors = palettes[state.currentPaletteIndex].colors;
+                    const noiseFactor = utils.noise(distFromCenter * 0.01, currentFrameCount * 0.005);
+                    const blendFactor = (distFromCenter / state.drawingRadius + noiseFactor) % 1.0;
+                    const index1 = utils.floor(blendFactor * paletteColors.length) % paletteColors.length;
+                    const index2 = (index1 + 1) % paletteColors.length;
+                    const lerpAmt = (blendFactor * paletteColors.length) % 1.0;
+                    let h1 = paletteColors[index1][0];
+                    let s1 = paletteColors[index1][1] / 100;
+                    let b1 = paletteColors[index1][2] / 100;
+                    let h2 = paletteColors[index2][0];
+                    let s2 = paletteColors[index2][1] / 100;
+                    let b2 = paletteColors[index2][2] / 100;
+                    if (utils.abs(h1 - h2) > 180) {
+                        if (h1 < h2) h1 += 360;
+                        else h2 += 360;
+                    }
+                    baseHue = (utils.lerp(h1, h2, lerpAmt) + speed * state.speedInfluence * 0.3 + currentFrameCount * 0.1) % 360;
+                    saturation = utils.constrain(utils.lerp(s1, s2, lerpAmt) + speed * 0.015, 0.5, 1.0);
+                    brightness = utils.constrain(utils.lerp(b1, b2, lerpAmt) - distFromCenter * 0.0005, 0.4, 1.0);
+                }
+
+                if (baseHue < 0) baseHue += 360;
+                let currentSize = baseSize;
+                let currentHue = baseHue;
+                let currentSaturation = saturation;
+                let currentBrightness = brightness;
+
+                const now = Date.now();
+                if (state.effectMode === 1) {
+                    const pulse = utils.sin(now * 0.008 + distFromCenter * 0.03) * (state.maxBrushSize * 0.2) + (state.maxBrushSize * 0.05);
+                    currentSize = Math.max(state.minBrushSize * 0.2, baseSize + pulse);
+                    const colorPulse = utils.sin(now * 0.006 + distFromCenter * 0.02) * 30;
+                    currentHue = (baseHue + colorPulse) % 360;
+                } else if (state.effectMode === 2) {
+                    currentHue = (baseHue + now * 0.2) % 360;
+                    currentSaturation = 1.0;
+                    currentBrightness = 0.8;
+                }
+
+                if (currentHue < 0) currentHue += 360;
+
+                const baseObject = new THREE.Group();
+                for (let i = 0; i < state.symmetry; i++) {
+                    const segmentAngle = state.angle * i;
+                    let geometry;
+                    let size = currentSize;
+                    switch (state.drawingMode) {
+                        case 0: geometry = new THREE.BoxGeometry(size * 0.5, size * 0.5, utils.constrain(speed * 0.5, 2, 20)); break;
+                        case 1: geometry = new THREE.SphereGeometry(size * 1.2, 16, 12); break;
+                        case 2: geometry = new THREE.TorusGeometry(size * 1.0, size * 0.4, 16, 24); break;
+                        case 3: geometry = new THREE.BoxGeometry(size, size, size); break;
+                        case 4: geometry = new THREE.SphereGeometry(size * 0.8, 8, 6); break;
+                        case 5: geometry = new THREE.BoxGeometry(size, size, size); break;
+                        default: geometry = new THREE.BoxGeometry(size, size, size);
+                    }
+                    const material = new THREE.MeshStandardMaterial({ transparent: true, opacity: 1 });
+                    material.color.setHSL(currentHue / 360, currentSaturation, currentBrightness);
+                    material.roughness = 0.6;
+                    material.metalness = 0.2;
+                    const mesh = new THREE.Mesh(geometry, material);
+                    let xPos = drawX;
+                    let yPos = drawY;
+                    let zPos = utils.map(utils.sin(now * 0.0002 + segmentAngle), -1, 1, -currentSize * 2, currentSize * 2);
+                    if (state.effectMode === 3) {
+                        const jitterAmount3D = currentSize * 0.5;
+                        xPos += utils.random(-jitterAmount3D, jitterAmount3D);
+                        yPos += utils.random(-jitterAmount3D, jitterAmount3D);
+                        zPos += utils.random(-jitterAmount3D, jitterAmount3D);
+                    }
+                    mesh.position.set(xPos, yPos, zPos);
+                    mesh.rotation.x = now * 0.0001 + speed * 0.01 + segmentAngle * 0.5;
+                    mesh.rotation.y = now * 0.00015 + speed * 0.015 + segmentAngle * 0.7;
+                    const pivot = new THREE.Object3D();
+                    pivot.add(mesh);
+                    pivot.rotation.z = segmentAngle;
+                    baseObject.add(pivot);
+                }
+                scene.add(baseObject);
+                threeObjects.push(baseObject);
+
+                state.hueValue = (state.hueValue + 0.05 + speed * 0.005) % 360;
+                if (state.hueValue < 0) state.hueValue += 360;
+            } catch (err) {
+                console.error('Error in drawKaleidoscope3D:', err);
+            }
+        }
+
         function onThreeJSPointerDown(event) {
-             if (controlsPanel && controlsPanel.classList.contains('visible')) {
-                 let panelRect = controlsPanel.getBoundingClientRect();
-                 if (event.clientX > panelRect.left && event.clientX < panelRect.right && event.clientY > panelRect.top && event.clientY < panelRect.bottom) { return; }
-             }
-            isMouseDown3D = true;
-            hasDragged3D = false;
-            mouseClickX3D = event.clientX;
-            mouseClickY3D = event.clientY;
+            try {
+                if (!controlsPanel || !event) return;
+                if (controlsPanel.classList.contains('visible')) {
+                    const panelRect = controlsPanel.getBoundingClientRect();
+                    if (event.clientX > panelRect.left && event.clientX < panelRect.right && event.clientY > panelRect.top && event.clientY < panelRect.bottom) {
+                        return;
+                    }
+                }
+                state.isMouseDown3D = true;
+                state.hasDragged3D = false;
+                state.mouseClickX3D = event.clientX;
+                state.mouseClickY3D = event.clientY;
+            } catch (err) {
+                console.error('Error in onThreeJSPointerDown:', err);
+            }
         }
+
         function onThreeJSPointerMove(event) {
-            if (!isMouseDown3D) return;
-            let dx = event.clientX - mouseClickX3D;
-            let dy = event.clientY - mouseClickY3D;
-            if (Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD_3D) {
-                hasDragged3D = true;
+            try {
+                if (!state.isMouseDown3D || !event) return;
+                const dx = event.clientX - state.mouseClickX3D;
+                const dy = event.clientY - state.mouseClickY3D;
+                if (utils.sqrt(dx * dx + dy * dy) > state.DRAG_THRESHOLD_3D) {
+                    state.hasDragged3D = true;
+                }
+            } catch (err) {
+                console.error('Error in onThreeJSPointerMove:', err);
             }
         }
+
         function onThreeJSPointerUp(event) {
-             if (controlsPanel && controlsPanel.classList.contains('visible')) {
-                 let panelRect = controlsPanel.getBoundingClientRect();
-                 if (event.clientX > panelRect.left && event.clientX < panelRect.right && event.clientY > panelRect.top && event.clientY < panelRect.bottom) {
-                     isMouseDown3D = false; return;
-                 }
-             }
-            if (isMouseDown3D && !hasDragged3D && !autoDraw) {
-                drawKaleidoscope3D(false);
+            try {
+                if (!controlsPanel || !event) return;
+                if (controlsPanel.classList.contains('visible')) {
+                    const panelRect = controlsPanel.getBoundingClientRect();
+                    if (event.clientX > panelRect.left && event.clientX < panelRect.right && event.clientY > panelRect.top && event.clientY < panelRect.bottom) {
+                        state.isMouseDown3D = false;
+                        return;
+                    }
+                }
+                if (state.isMouseDown3D && !state.hasDragged3D && !state.autoDraw) {
+                    drawKaleidoscope3D(false);
+                }
+                state.isMouseDown3D = false;
+                state.hasDragged3D = false;
+            } catch (err) {
+                console.error('Error in onThreeJSPointerUp:', err);
             }
-            isMouseDown3D = false;
-            hasDragged3D = false;
         }
-        function random(min, max) {
-            if (typeof max === 'undefined') { max = min; min = 0; }
-            return Math.random() * (max - min) + min;
-        }
-        function noise(x, y = 0, z = 0) {
-             if (safeP5Exists()) return myp5.noise(x, y, z);
-             let result = (Math.sin(x * 12.9898 + y * 78.233 + z * 45.543) * 43758.5453) % 1;
-             return (result + 1) / 2;
-        }
-        function map(value, start1, stop1, start2, stop2, withinBounds = false) {
-             const newval = (value - start1) / (stop1 - start1) * (stop2 - stop2) + start2;
-             if (!withinBounds) return newval;
-             if (start2 < stop2) {
-                 return constrain(newval, start2, stop2);
-             } else {
-                 return constrain(newval, stop2, start2);
-             }
-        }
-        function constrain(n, low, high) { return Math.max(Math.min(n, high), low); }
-        function floor(n) { return Math.floor(n); }
-        function lerp(start, stop, amt) { return amt * (stop - start) + start; }
-        const { sin, cos, atan2, sqrt, abs, PI, TWO_PI } = Math;
+
         class ParticleP5 {
             constructor(p, x, y, h, s, b, startSize) {
-                this.p = p;
-                this.pos = p.createVector(x, y);
-                let angleFromCenter = p.atan2(y, x); let speed = p.random(0.5, 2.5);
-                this.vel = p.createVector(p.cos(angleFromCenter) * speed, p.sin(angleFromCenter) * speed);
-                this.vel.add(p5.Vector.random2D().mult(p.random(0.5, 1.5)));
-                this.acc = p.createVector(0, 0);
-                this.lifespan = p.random(80, 200); this.initialLifespan = this.lifespan;
-                this.hue = h + p.random(-15, 15); this.sat = p.constrain(s + p.random(-10, 10), 60, 100);
-                this.bri = p.constrain(b + p.random(-10, 10), 50, 100);
-                this.size = p.max(1, startSize * p.random(0.2, 0.6));
+                try {
+                    this.p = p;
+                    this.pos = p.createVector(x, y);
+                    const angleFromCenter = p.atan2(y, x);
+                    const speed = utils.random(0.5, 2.5);
+                    this.vel = p.createVector(utils.cos(angleFromCenter) * speed, utils.sin(angleFromCenter) * speed);
+                    const randomVec = p.createVector();
+                    if (randomVec.random2D) {
+                        randomVec.random2D();
+                    } else {
+                        const angle = utils.random(0, utils.TWO_PI);
+                        randomVec.set(Math.cos(angle), Math.sin(angle));
+                    }
+                    this.vel.add(randomVec.mult(utils.random(0.5, 1.5)));
+                    this.acc = p.createVector(0, 0);
+                    this.lifespan = utils.random(80, 200);
+                    this.initialLifespan = this.lifespan;
+                    this.hue = h + utils.random(-15, 15);
+                    this.sat = utils.constrain(s + utils.random(-10, 10), 60, 100);
+                    this.bri = utils.constrain(b + utils.random(-10, 10), 50, 100);
+                    this.size = Math.max(1, startSize * utils.random(0.2, 0.6));
+                } catch (err) {
+                    console.error('Error in ParticleP5 constructor:', err);
+                }
             }
+
             update() {
-                this.vel.add(this.acc); this.pos.add(this.vel);
-                this.lifespan -= 1.5; this.acc.mult(0); this.vel.mult(0.98);
+                try {
+                    this.vel.add(this.acc);
+                    this.pos.add(this.vel);
+                    this.lifespan -= 1.5;
+                    this.acc.mult(0);
+                    this.vel.mult(0.98);
+                } catch (err) {
+                    console.error('Error in ParticleP5.update:', err);
+                }
             }
+
             display() {
-                let alpha = this.p.map(this.lifespan, 0, this.initialLifespan, 0, 100);
-                this.p.fill(this.hue % 360, this.sat, this.bri, alpha); this.p.noStroke();
-                this.p.ellipse(this.pos.x, this.pos.y, this.size, this.size);
+                try {
+                    const alpha = utils.map(this.lifespan, 0, this.initialLifespan, 0, 100);
+                    this.p.fill(this.hue % 360, this.sat, this.bri, alpha);
+                    this.p.noStroke();
+                    this.p.ellipse(this.pos.x, this.pos.y, this.size, this.size);
+                } catch (err) {
+                    console.error('Error in ParticleP5.display:', err);
+                }
             }
-            isFinished() { return this.lifespan <= 0; }
+
+            isFinished() {
+                try {
+                    return this.lifespan <= 0;
+                } catch (err) {
+                    console.error('Error in ParticleP5.isFinished:', err);
+                    return true;
+                }
+            }
         }
-        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // Check WebGL support before initialization
+        try {
+            const gl = document.createElement('canvas').getContext('webgl');
+            if (!gl) {
+                console.warn('WebGL is not supported in your browser. Some features may not work.');
+                alert('WebGL is not supported in your browser. Some features may not work.');
+            }
+        } catch (err) {
+            console.error('Error checking WebGL support:', err);
+            alert('Failed to check WebGL support. Check console for details.');
+        }
+
+        // Initialize p5.js
+        try {
+            if (!window.p5 || !window.THREE) {
+                throw new Error('Required libraries (p5.js or Three.js) not loaded');
+            }
+            myp5 = new p5(sketch);
+            console.log('p5.js initialized');
+        } catch (err) {
+            console.error('Error initializing p5.js:', err);
+            alert('Failed to initialize the application. Please check your browser console for details.');
+        }
+
+        // Prevent context menu
+        document.addEventListener('contextmenu', event => {
+            try {
+                event.preventDefault();
+            } catch (err) {
+                console.error('Error in contextmenu handler:', err);
+            }
+        });
     </script>
 </body>
 </html>
