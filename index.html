@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Enhanced Infinity Kaleidoscope (Three.js 3D) - Fixed</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.2/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #050505;
+            font-family: 'Orbitron', sans-serif;
+            color: #eee;
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
+        }
+
+        canvas {
+            display: block; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        #threejs-canvas {
+             z-index: 1;
+        }
+        #defaultCanvas0 {
+            z-index: 1;
+        }
+
+        .menu-button {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 10px 15px;
+            font-size: 14px;
+            background-color: rgba(0, 191, 255, 0.75);
+            color: #0d0d0d;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            font-weight: bold;
+            z-index: 1001;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 2px 8px rgba(0, 191, 255, 0.3);
+        }
+        .menu-button:hover {
+            background-color: rgba(0, 191, 255, 0.95);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 191, 255, 0.5);
+        }
+         .menu-button:active {
+             transform: translateY(0);
+             box-shadow: 0 2px 5px rgba(0, 191, 255, 0.2);
+        }
+
+        .controls {
+            position: fixed;
+            top: 0; right: 0;
+            width: 280px; height: 100%;
+            background-color: rgba(15, 15, 15, 0.97);
+            padding: 70px 20px 20px 20px;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.7);
+            z-index: 1000;
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transform: translateX(100%);
+            opacity: 0;
+            pointer-events: none;
+            overflow-y: auto;
+            box-sizing: border-box;
+            scrollbar-width: thin; scrollbar-color: #00bfff #222;
+        }
+        .controls::-webkit-scrollbar { width: 8px; }
+        .controls::-webkit-scrollbar-track { background: #222; border-radius: 10px; }
+        .controls::-webkit-scrollbar-thumb { background-color: #00bfff; border-radius: 10px; border: 2px solid #222; }
+        .controls.visible { transform: translateX(0); opacity: 1; pointer-events: all; }
+
+        .control-item { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+        .control-item label { font-size: 13px; color: #ccc; display: flex; justify-content: space-between; align-items: center; }
+        input[type="range"] { cursor: pointer; width: 100%; -webkit-appearance: none; appearance: none; height: 8px; background: linear-gradient(90deg, #00bfff, #0077cc); outline: none; opacity: 0.85; transition: opacity .2s; border-radius: 4px; margin-top: 4px; }
+        input[type="range"]:hover { opacity: 1; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: #eee; cursor: pointer; border-radius: 50%; box-shadow: 0 0 8px rgba(255, 255, 255, 0.5); margin-top: -5px; border: 2px solid #00bfff; }
+        input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; background: #eee; cursor: pointer; border-radius: 50%; box-shadow: 0 0 8px rgba(255, 255, 255, 0.5); border: 2px solid #00bfff; }
+        .controls button { width: 100%; padding: 12px; font-size: 14px; background: linear-gradient(145deg, #00bfff, #008ecc); color: #fff; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease; font-weight: bold; box-shadow: 0 3px 8px rgba(0, 191, 255, 0.3); text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); }
+        .controls button:hover { background: linear-gradient(145deg, #00aae6, #0077b3); transform: translateY(-1px); box-shadow: 0 5px 12px rgba(0, 191, 255, 0.5); }
+        .controls button:active { transform: translateY(0); box-shadow: 0 2px 5px rgba(0, 191, 255, 0.2); background: linear-gradient(145deg, #0099cc, #006699); }
+        .value-display { min-width: 35px; text-align: right; font-weight: bold; color: #00eaff; font-family: monospace; font-size: 13px; }
+
+        @media (max-width: 600px) {
+            .controls { width: 250px; padding: 65px 15px 15px 15px; }
+            .menu-button { top: 10px; right: 10px; padding: 8px 12px; font-size: 13px; }
+            .control-item label { font-size: 12px; }
+            .value-display { font-size: 12px; }
+            .controls button { padding: 10px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <button id="menuButton" class="menu-button">Menu</button>
+    <div class="controls" id="controlsPanel">
+        <div class="control-item">
+             <button id="dimensionButton">Mode: 2D</button>
+        </div>
+        <div class="control-item">
+            <label for="symmetrySlider">Symmetry: <span id="symmetryValue" class="value-display">16</span></label>
+            <input type="range" id="symmetrySlider" min="2" max="64" value="16" step="1">
+        </div>
+        <div class="control-item">
+            <label for="sizeSlider">Max Size: <span id="sizeValue" class="value-display">10</span></label>
+            <input type="range" id="sizeSlider" min="1" max="100" value="10" step="1">
+        </div>
+        <div class="control-item">
+            <label for="fadeSlider">Trail (2D Fade): <span id="fadeValue" class="value-display">2.0</span></label>
+            <input type="range" id="fadeSlider" min="0" max="50" value="2" step="0.5">
+        </div>
+        <div class="control-item">
+            <label for="speedInfluenceSlider">Speed Influence: <span id="speedInfluenceValue" class="value-display">3.0</span></label>
+            <input type="range" id="speedInfluenceSlider" min="0" max="20" value="3" step="0.1">
+        </div>
+        <div class="control-item">
+            <button id="modeButton">Shape: Lines</button>
+        </div>
+        <div class="control-item">
+            <button id="effectButton">Effect: None</button>
+        </div>
+        <div class="control-item">
+            <button id="paletteButton">Palette: Dynamic</button>
+        </div>
+        <div class="control-item">
+            <button id="clearButton">Clear Canvas</button>
+        </div>
+         <div class="control-item">
+            <button id="saveButton">Save Image</button>
+        </div>
+         <div class="control-item">
+            <button id="autoDrawButton">Auto Draw: OFF</button>
+        </div>
+    </div>
+    <script>
+        let is3DMode = false;
+        let symmetry = 16;
+        let angle;
+        let hueValue = 0;
+        let maxBrushSize = 10;
+        let minBrushSize = 1;
+        let fadeAmount = 2;
+        let speedInfluence = 3;
+        let drawingMode = 0;
+        let effectMode = 0;
+        let drawingRadius;
+        let autoDraw = false;
+        let autoDrawAngle = 0;
+        let autoDrawRadius = 0;
+        let autoDrawSpeed = 0.01;
+        let autoDrawNoiseOffset = 0;
+        let currentPaletteIndex = 0;
+        const palettes = [ 
+            { name: "Dynamic", colors: [] },
+            { name: "Ocean", colors: [ [180, 90, 90], [210, 85, 80], [230, 80, 70], [200, 95, 95] ] },
+            { name: "Sunset", colors: [ [10, 95, 100], [30, 90, 95], [50, 85, 90], [350, 90, 85] ] },
+            { name: "Forest", colors: [ [120, 70, 60], [150, 65, 50], [90, 75, 70], [100, 80, 80] ] },
+            { name: "Nebula", colors: [ [270, 80, 90], [300, 85, 85], [240, 75, 95], [330, 90, 80] ] },
+            { name: "Monochrome", colors: [ [0, 0, 100], [0, 0, 80], [0, 0, 60], [0, 0, 40] ] },
+            { name: "Neon", colors: [ [300, 100, 100], [180, 100, 95], [60, 100, 90], [0, 100, 100] ] }
+        ];
+        let p5Canvas = null;
+        let isDraggingP5 = false;
+        let dragStartX_p5, dragStartY_p5;
+        let offsetX_p5 = 0, offsetY_p5 = 0;
+        let particles_p5 = [];
+        const MAX_PARTICLES_P5 = 300;
+        let isTouchPanningP5 = false;
+        let threeContainer = null;
+        let scene, camera, renderer, controls;
+        let threeObjects = [];
+        let animationFrameId = null;
+        let isMouseDown3D = false;
+        let mouseClickX3D = 0, mouseClickY3D = 0;
+        let hasDragged3D = false;
+        const DRAG_THRESHOLD_3D = 5;
+        let symmetrySlider, sizeSlider, fadeSlider, speedInfluenceSlider;
+        let clearButton, modeButton, menuButton, controlsPanel, effectButton, paletteButton, dimensionButton, saveButton, autoDrawButton;
+        let symmetryValueSpan, sizeValueSpan, fadeValueSpan, speedInfluenceValueSpan;
+        let sketch = function(p) {
+            p.setup = function() {
+                if (!is3DMode) {
+                    p5Canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+                    p5Canvas.id('defaultCanvas0');
+                    p5Canvas.style('z-index', '1');
+                    initializeP5State();
+                } else {
+                    p.noCanvas();
+                }
+                dimensionButton = document.getElementById('dimensionButton');
+                symmetrySlider = document.getElementById('symmetrySlider');
+                sizeSlider = document.getElementById('sizeSlider');
+                fadeSlider = document.getElementById('fadeSlider');
+                speedInfluenceSlider = document.getElementById('speedInfluenceSlider');
+                clearButton = document.getElementById('clearButton');
+                modeButton = document.getElementById('modeButton');
+                menuButton = document.getElementById('menuButton');
+                controlsPanel = document.getElementById('controlsPanel');
+                effectButton = document.getElementById('effectButton');
+                paletteButton = document.getElementById('paletteButton');
+                saveButton = document.getElementById('saveButton');
+                autoDrawButton = document.getElementById('autoDrawButton');
+                symmetryValueSpan = document.getElementById('symmetryValue');
+                sizeValueSpan = document.getElementById('sizeValue');
+                fadeValueSpan = document.getElementById('fadeValue');
+                speedInfluenceValueSpan = document.getElementById('speedInfluenceValue');
+                dimensionButton.addEventListener('click', toggleDimensionMode);
+                symmetrySlider.addEventListener('input', updateSymmetry);
+                sizeSlider.addEventListener('input', updateMaxSize);
+                fadeSlider.addEventListener('input', updateFade);
+                speedInfluenceSlider.addEventListener('input', updateSpeedInfluence);
+                clearButton.addEventListener('click', clearActiveCanvas);
+                modeButton.addEventListener('click', toggleDrawingMode);
+                menuButton.addEventListener('click', toggleControls);
+                effectButton.addEventListener('click', toggleEffectMode);
+                paletteButton.addEventListener('click', cyclePalette);
+                saveButton.addEventListener('click', saveActiveCanvas);
+                autoDrawButton.addEventListener('click', toggleAutoDraw);
+                updateSymmetry(); updateMaxSize(); updateFade(); updateSpeedInfluence();
+                updatePaletteButtonText(); updateDrawingModeButtonText(); updateEffectModeButtonText();
+                updateAutoDrawButtonText();
+                if (is3DMode) {
+                    setupThreeJS();
+                }
+            };
+            function initializeP5State() {
+                angle = p.TWO_PI / symmetry;
+                calculateDrawingRadius();
+                p.colorMode(p.HSB, 360, 100, 100, 100);
+                p.background(5);
+                offsetX_p5 = 0; offsetY_p5 = 0;
+                particles_p5 = [];
+            }
+            p.draw = function() {
+                if (!is3DMode && p5Canvas) {
+                    draw2D();
+                }
+            };
+            function draw2D() {
+                let mappedFadeAlpha = p.map(fadeAmount, 0, 50, 0.1, 15);
+                p.background(5, 5, 5, mappedFadeAlpha);
+                p.translate(p.width / 2 + offsetX_p5, p.height / 2 + offsetY_p5);
+                let currentMouseX, currentMouseY, prevMouseX, prevMouseY;
+                if (autoDraw) {
+                    let noiseFactor = p.noise(autoDrawNoiseOffset);
+                    autoDrawRadius = p.map(p.noise(autoDrawNoiseOffset + 10), 0, 1, 0, drawingRadius * 0.9);
+                    autoDrawAngle += p.map(p.noise(autoDrawNoiseOffset + 20), 0, 1, -autoDrawSpeed, autoDrawSpeed) * 5;
+                    currentMouseX = autoDrawRadius * p.cos(autoDrawAngle);
+                    currentMouseY = autoDrawRadius * p.sin(autoDrawAngle);
+                    let prevAngle = autoDrawAngle - autoDrawSpeed * 5;
+                    let prevRadius = p.map(p.noise(autoDrawNoiseOffset + 10 - 0.01), 0, 1, 0, drawingRadius * 0.9);
+                    prevMouseX = prevRadius * p.cos(prevAngle);
+                    prevMouseY = prevRadius * p.sin(prevAngle);
+                    autoDrawNoiseOffset += 0.005;
+                } else {
+                    currentMouseX = p.mouseX - p.width / 2 - offsetX_p5;
+                    currentMouseY = p.mouseY - p.height / 2 - offsetY_p5;
+                    prevMouseX = p.pmouseX - p.width / 2 - offsetX_p5;
+                    prevMouseY = p.pmouseY - p.height / 2 - offsetY_p5;
+                }
+                let distFromCenter = p.dist(0, 0, currentMouseX, currentMouseY);
+                let shouldDraw = autoDraw || (p.mouseIsPressed && !isDraggingP5 && distFromCenter < drawingRadius && p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height);
+                if (shouldDraw) {
+                    let speed = autoDraw ? p.dist(currentMouseX, currentMouseY, prevMouseX, prevMouseY) * 5 : p.dist(currentMouseX, currentMouseY, prevMouseX, prevMouseY);
+                    speed = p.constrain(speed, 0, 50);
+                    let baseBrushSize = p.map(distFromCenter, 0, drawingRadius, minBrushSize, maxBrushSize);
+                    baseBrushSize = p.constrain(baseBrushSize, minBrushSize, maxBrushSize);
+                    let baseHue, saturation, brightness;
+                    let alpha = p.map(speed, 0, 30, 40, 100, true);
+                    if (currentPaletteIndex === 0) {
+                        let noiseHue = p.noise(currentMouseX * 0.005, currentMouseY * 0.005, p.frameCount * 0.001);
+                        baseHue = (hueValue + p.map(noiseHue, 0, 1, -90, 90) + speed * speedInfluence) % 360;
+                        saturation = p.map(speed, 0, 30, 70, 100, true);
+                        brightness = p.map(distFromCenter, 0, drawingRadius, 100, 60, true);
+                    } else {
+                        let paletteColors = palettes[currentPaletteIndex].colors;
+                        let noiseFactor = p.noise(distFromCenter * 0.01, p.frameCount * 0.005);
+                        let blendFactor = (distFromCenter / drawingRadius + noiseFactor) % 1.0;
+                        let index1 = p.floor(blendFactor * paletteColors.length) % paletteColors.length;
+                        let index2 = (index1 + 1) % paletteColors.length;
+                        let lerpAmt = (blendFactor * paletteColors.length) % 1.0;
+                        let c1 = p.color(paletteColors[index1][0], paletteColors[index1][1], paletteColors[index1][2]);
+                        let c2 = p.color(paletteColors[index2][0], paletteColors[index2][1], paletteColors[index2][2]);
+                        let lerpedColor = p.lerpColor(c1, c2, lerpAmt);
+                        baseHue = p.hue(lerpedColor);
+                        saturation = p.saturation(lerpedColor);
+                        brightness = p.brightness(lerpedColor);
+                        baseHue = (baseHue + speed * speedInfluence * 0.3 + p.frameCount * 0.1) % 360;
+                        saturation = p.constrain(saturation + speed * 1.5, 50, 100);
+                        brightness = p.constrain(brightness - distFromCenter * 0.05, 40, 100);
+                    }
+                    if (baseHue < 0) baseHue += 360;
+                    let currentBrushSize = baseBrushSize; let currentHue = baseHue;
+                    let currentSaturation = saturation; let currentBrightness = brightness;
+                    let jitterX = 0, jitterY = 0;
+                    if (effectMode === 1) {
+                        let pulse = p.sin(p.frameCount * 0.08 + distFromCenter * 0.03) * (maxBrushSize * 0.4) + (maxBrushSize * 0.1);
+                        currentBrushSize = p.max(minBrushSize, baseBrushSize + pulse);
+                        let colorPulse = p.sin(p.frameCount * 0.06 + distFromCenter * 0.02) * 30;
+                        currentHue = (baseHue + colorPulse) % 360;
+                        currentSaturation = p.constrain(saturation + p.abs(p.sin(p.frameCount * 0.1)) * 20, 60, 100);
+                        currentBrightness = p.constrain(brightness + p.abs(p.cos(p.frameCount * 0.09)) * 20, 50, 100);
+                    } else if (effectMode === 2) {
+                        currentHue = (baseHue + p.frameCount * 2.0) % 360; currentSaturation = 100; currentBrightness = 100; alpha = 95;
+                    } else if (effectMode === 3) {
+                        let jitterAmount = p.map(speed, 0, 20, 0.5, 5, true);
+                        jitterX = p.random(-jitterAmount, jitterAmount); jitterY = p.random(-jitterAmount, jitterAmount);
+                        currentBrushSize *= p.random(0.8, 1.2);
+                    }
+                    if (currentHue < 0) currentHue += 360;
+                    for (let i = 0; i < symmetry; i++) {
+                        p.push(); p.rotate(angle * i);
+                        let drawX = currentMouseX + jitterX; let drawY = currentMouseY + jitterY;
+                        let prevDrawX = prevMouseX + jitterX; let prevDrawY = prevMouseY + jitterY;
+                        p.strokeWeight(currentBrushSize); p.stroke(currentHue, currentSaturation, currentBrightness, alpha);
+                        if (drawingMode === 1 || drawingMode === 2) { p.fill(currentHue, currentSaturation, currentBrightness, alpha * 0.6); p.noStroke(); }
+                        else if (drawingMode === 4) { p.noStroke(); p.fill(currentHue, currentSaturation, currentBrightness, alpha * 0.8); }
+                        else { p.noFill(); }
+                        switch (drawingMode) {
+                            case 0: p.line(drawX, drawY, prevDrawX, prevDrawY); break;
+                            case 1: p.ellipse(drawX, drawY, currentBrushSize * 1.5, currentBrushSize * 1.5); break;
+                            case 2: let ts = currentBrushSize*2.0; p.push(); p.translate(drawX,drawY); p.rotate(p.atan2(drawY-prevDrawY, drawX-prevDrawX)); p.triangle(0,-ts/2,-ts/1.5,ts/2,ts/1.5,ts/2); p.pop(); break;
+                            case 3: p.noFill(); p.beginShape(); p.vertex(prevDrawX, prevDrawY); p.quadraticVertex((prevDrawX+drawX)/2+p.random(-5,5),(prevDrawY+drawY)/2+p.random(-5,5),drawX,drawY); p.endShape(); break;
+                            case 4: if (particles_p5.length < MAX_PARTICLES_P5) { particles_p5.push(new ParticleP5(p, drawX, drawY, currentHue, currentSaturation, currentBrightness, currentBrushSize)); } break;
+                            case 5: p.push(); p.translate(drawX,drawY); let na = p.noise(drawX*0.02,drawY*0.02,p.frameCount*0.01)*p.TWO_PI*4; let ll = currentBrushSize*p.map(speed,0,20,1,3,true); p.line(0,0,p.cos(na)*ll,p.sin(na)*ll); p.pop(); break;
+                        }
+                        p.push(); p.scale(1, -1);
+                        p.strokeWeight(currentBrushSize); p.stroke(currentHue, currentSaturation, currentBrightness, alpha * 0.8);
+                        if (drawingMode === 1 || drawingMode === 2) { p.fill(currentHue, currentSaturation, currentBrightness, alpha * 0.4); p.noStroke(); }
+                        else if (drawingMode === 4) {  } else { p.noFill(); }
+                        switch (drawingMode) {
+                            case 0: p.line(drawX, drawY, prevDrawX, prevDrawY); break;
+                            case 1: p.ellipse(drawX, drawY, currentBrushSize * 1.5, currentBrushSize * 1.5); break;
+                            case 2: let ts = currentBrushSize*2.0; p.push(); p.translate(drawX,drawY); p.rotate(p.atan2(drawY-prevDrawY, drawX-prevDrawX)); p.triangle(0,-ts/2,-ts/1.5,ts/2,ts/1.5,ts/2); p.pop(); break;
+                            case 3: p.noFill(); p.beginShape(); p.vertex(prevDrawX, prevDrawY); p.quadraticVertex((prevDrawX+drawX)/2+p.random(-5,5),(prevDrawY+drawY)/2+p.random(-5,5),drawX,drawY); p.endShape(); break;
+                            case 5: p.push(); p.translate(drawX,drawY); let na = p.noise(drawX*0.02,drawY*0.02,p.frameCount*0.01)*p.TWO_PI*4; let ll = currentBrushSize*p.map(speed,0,20,1,3,true); p.line(0,0,p.cos(na)*ll,p.sin(na)*ll); p.pop(); break;
+                        }
+                        p.pop();
+                        p.pop();
+                    }
+                    hueValue = (hueValue + 0.05 + speed * 0.005) % 360;
+                    if (hueValue < 0) hueValue += 360;
+                }
+                if (drawingMode === 4) {
+                    for (let i = particles_p5.length - 1; i >= 0; i--) {
+                        particles_p5[i].update(); particles_p5[i].display();
+                        if (particles_p5[i].isFinished()) { particles_p5.splice(i, 1); }
+                    }
+                }
+                p.resetMatrix();
+            }
+            p.windowResized = function() {
+                if (!is3DMode && p5Canvas) {
+                    p.resizeCanvas(p.windowWidth, p.windowHeight);
+                    calculateDrawingRadius();
+                    p.background(5);
+                    offsetX_p5 = 0; offsetY_p5 = 0;
+                } else if (is3DMode && renderer) {
+                    onThreeJSWindowResize();
+                }
+            };
+            p.mousePressed = function() {
+                if (controlsPanel && controlsPanel.classList.contains('visible')) {
+                    let panelRect = controlsPanel.getBoundingClientRect();
+                    if (p.mouseX > panelRect.left && p.mouseX < panelRect.right && p.mouseY > panelRect.top && p.mouseY < panelRect.bottom) { return; }
+                }
+                if (!is3DMode) {
+                    if ((p.keyIsDown(p.CONTROL) || p.mouseButton === p.RIGHT) && p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) {
+                        isDraggingP5 = true;
+                        dragStartX_p5 = p.mouseX; dragStartY_p5 = p.mouseY;
+                        p.cursor('grabbing');
+                        return false;
+                    } else {
+                        isDraggingP5 = false;
+                    }
+                }
+                return true;
+            };
+            p.mouseDragged = function() {
+                if (!is3DMode && isDraggingP5) {
+                    let deltaX = p.mouseX - dragStartX_p5; let deltaY = p.mouseY - dragStartY_p5;
+                    offsetX_p5 += deltaX; offsetY_p5 += deltaY;
+                    dragStartX_p5 = p.mouseX; dragStartY_p5 = p.mouseY;
+                    return false;
+                }
+                return true;
+            };
+            p.mouseReleased = function() {
+                if (!is3DMode && isDraggingP5) {
+                    isDraggingP5 = false;
+                    p.cursor(p.CROSS);
+                }
+                return true;
+            };
+            p.touchStarted = function() {
+                if (is3DMode) return true;
+                if (controlsPanel && controlsPanel.classList.contains('visible') && p.touches.length > 0) {
+                    let panelRect = controlsPanel.getBoundingClientRect();
+                    if (p.touches[0].x > panelRect.left && p.touches[0].x < panelRect.right && p.touches[0].y > panelRect.top && p.touches[0].y < panelRect.bottom) { return; }
+                }
+                if (p.touches.length === 2) {
+                    isTouchPanningP5 = true; isDraggingP5 = true;
+                    dragStartX_p5 = (p.touches[0].x + p.touches[1].x) / 2;
+                    dragStartY_p5 = (p.touches[0].y + p.touches[1].y) / 2;
+                    p.cursor('grabbing');
+                    return false;
+                } else if (p.touches.length === 1) {
+                     isDraggingP5 = false;
+                }
+                return true;
+            };
+            p.touchMoved = function() {
+                if (is3DMode) return true;
+                if (isTouchPanningP5 && p.touches.length === 2) {
+                    let currentTouchX = (p.touches[0].x + p.touches[1].x) / 2;
+                    let currentTouchY = (p.touches[0].y + p.touches[1].y) / 2;
+                    let deltaX = currentTouchX - dragStartX_p5;
+                    let deltaY = currentTouchY - dragStartY_p5;
+                    offsetX_p5 += deltaX; offsetY_p5 += deltaY;
+                    dragStartX_p5 = currentTouchX; dragStartY_p5 = currentTouchY;
+                    return false;
+                }
+                return true;
+            };
+            p.touchEnded = function() {
+                if (is3DMode) return true;
+                if (isTouchPanningP5) {
+                    if (p.touches.length < 2) {
+                        isTouchPanningP5 = false; isDraggingP5 = false;
+                        p.cursor(p.CROSS);
+                    }
+                }
+                 return true;
+            };
+        };
+        let myp5 = new p5(sketch);
+        const safeP5Value = (funcName, ...args) => myp5 && typeof myp5[funcName] === 'function' ? myp5[funcName](...args) : (args[0] || 0);
+        const safeP5Exists = () => myp5 && typeof myp5.random === 'function';
+        function updateSymmetry() { symmetry = parseInt(symmetrySlider.value); angle = Math.PI * 2 / symmetry; symmetryValueSpan.innerHTML = symmetry; }
+        function updateMaxSize() { maxBrushSize = parseFloat(sizeSlider.value); minBrushSize = Math.max(1, maxBrushSize * 0.1); sizeValueSpan.innerHTML = maxBrushSize.toFixed(0); }
+        function updateFade() { fadeAmount = parseFloat(fadeSlider.value); fadeValueSpan.innerHTML = fadeAmount.toFixed(1); }
+        function updateSpeedInfluence() { speedInfluence = parseFloat(speedInfluenceSlider.value); speedInfluenceValueSpan.innerHTML = speedInfluence.toFixed(1); }
+        function toggleDrawingMode() { drawingMode = (drawingMode + 1) % 6; updateDrawingModeButtonText(); if (!is3DMode) particles_p5 = []; }
+        function getDrawingModeText(mode) { return ["Shape: Lines", "Shape: Circles", "Shape: Triangles", "Shape: Curves", "Shape: Particles", "Shape: Noise Lines"][mode % 6]; }
+        function updateDrawingModeButtonText() { if (modeButton) modeButton.innerHTML = getDrawingModeText(drawingMode); }
+        function toggleEffectMode() { effectMode = (effectMode + 1) % 4; updateEffectModeButtonText(); }
+        function getEffectModeText(mode) { return ["Effect: None", "Effect: Pulsating", "Effect: Color Cycle", "Effect: Jitter"][mode % 4]; }
+        function updateEffectModeButtonText() { if (effectButton) effectButton.innerHTML = getEffectModeText(effectMode); }
+        function cyclePalette() { currentPaletteIndex = (currentPaletteIndex + 1) % palettes.length; updatePaletteButtonText(); }
+        function updatePaletteButtonText() { if (paletteButton) paletteButton.innerHTML = "Palette: " + palettes[currentPaletteIndex].name; }
+        function toggleAutoDraw() { autoDraw = !autoDraw; updateAutoDrawButtonText(); if (autoDraw) { autoDrawAngle = Math.random() * Math.PI * 2; autoDrawRadius = Math.random() * (drawingRadius * 0.6) + drawingRadius * 0.2; autoDrawNoiseOffset = Math.random() * 1000; } }
+        function updateAutoDrawButtonText() { if (autoDrawButton) autoDrawButton.innerHTML = "Auto Draw: " + (autoDraw ? "ON" : "OFF"); }
+        function toggleControls() { if (controlsPanel) controlsPanel.classList.toggle('visible'); if (menuButton) menuButton.innerHTML = controlsPanel.classList.contains('visible') ? 'Close Menu' : 'Menu'; }
+        function calculateDrawingRadius() { drawingRadius = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.9; }
+        function toggleDimensionMode() {
+            is3DMode = !is3DMode;
+            if (dimensionButton) dimensionButton.innerHTML = is3DMode ? "Mode: 3D" : "Mode: 2D";
+            if (is3DMode) {
+                if (myp5 && myp5.remove) {
+                    myp5.remove();
+                    p5Canvas = null;
+                } else {
+                    const oldCanvas = document.getElementById('defaultCanvas0');
+                    if (oldCanvas) oldCanvas.remove();
+                }
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                cleanupThreeJS();
+                setupThreeJS();
+            } else {
+                cleanupThreeJS();
+                myp5 = new p5(sketch);
+            }
+            setTimeout(clearActiveCanvas, 100);
+        }
+        function clearActiveCanvas() {
+            if (is3DMode) {
+                clearThreeJSScene();
+            } else if (myp5 && myp5.canvas) {
+                myp5.background(5);
+                particles_p5 = [];
+                offsetX_p5 = 0; offsetY_p5 = 0;
+            }
+            hueValue = safeP5Exists() ? myp5.random(360) : Math.random() * 360;
+        }
+        function saveActiveCanvas() {
+            const now = new Date();
+            const timestamp = now.getFullYear() +
+                           ('0' + (now.getMonth() + 1)).slice(-2) +
+                           ('0' + now.getDate()).slice(-2) + "_" +
+                           ('0' + now.getHours()).slice(-2) +
+                           ('0' + now.getMinutes()).slice(-2) +
+                           ('0' + now.getSeconds()).slice(-2);
+            if (is3DMode && renderer) {
+                try {
+                    renderer.render(scene, camera);
+                    const dataURL = renderer.domElement.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.download = 'kaleidoscope3D_' + timestamp + '.png';
+                    link.href = dataURL;
+                    link.click();
+                } catch (e) {
+                    alert("Could not save 3D canvas. Your browser might have security restrictions (tainted canvas).");
+                }
+            } else if (!is3DMode && myp5 && myp5.saveCanvas) {
+                myp5.saveCanvas('kaleidoscope2D_' + timestamp, 'png');
+            }
+        }
+        function setupThreeJS() {
+             if (!threeContainer) {
+                 threeContainer = document.createElement('div');
+                 threeContainer.id = 'threejs-container';
+                 document.body.appendChild(threeContainer);
+             }
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050505);
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            calculateDrawingRadius();
+            camera.position.z = drawingRadius ? drawingRadius * 1.5 : 300;
+            renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.domElement.id = 'threejs-canvas';
+            renderer.domElement.style.position = 'absolute';
+            renderer.domElement.style.top = '0';
+            renderer.domElement.style.left = '0';
+            renderer.domElement.style.zIndex = '1';
+            while (threeContainer.firstChild) {
+                threeContainer.removeChild(threeContainer.firstChild);
+            }
+            threeContainer.appendChild(renderer.domElement);
+            const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            directionalLight.position.set(0.5, 0.8, 1);
+            scene.add(directionalLight);
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.1;
+            controls.screenSpacePanning = false;
+            renderer.domElement.addEventListener('pointerdown', onThreeJSPointerDown, false);
+            renderer.domElement.addEventListener('pointermove', onThreeJSPointerMove, false);
+            renderer.domElement.addEventListener('pointerup', onThreeJSPointerUp, false);
+            window.addEventListener('resize', onThreeJSWindowResize, false);
+            animateThreeJS();
+        }
+        function animateThreeJS() {
+            animationFrameId = requestAnimationFrame(animateThreeJS);
+            controls.update();
+            if (autoDraw && scene) {
+                drawKaleidoscope3D(true);
+            }
+            if (renderer && scene && camera) {
+               renderer.render(scene, camera);
+            }
+        }
+        function cleanupThreeJS() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+             window.removeEventListener('resize', onThreeJSWindowResize);
+            if (renderer && renderer.domElement) {
+                 renderer.domElement.removeEventListener('pointerdown', onThreeJSPointerDown);
+                 renderer.domElement.removeEventListener('pointermove', onThreeJSPointerMove);
+                 renderer.domElement.removeEventListener('pointerup', onThreeJSPointerUp);
+            }
+             scene?.traverse(object => {
+                 if (!object.isMesh) return;
+                 object.geometry?.dispose();
+                 if (object.material) {
+                     if (Array.isArray(object.material)) {
+                         object.material.forEach(material => material.dispose());
+                     } else {
+                         object.material.dispose();
+                     }
+                 }
+             });
+             threeObjects = [];
+            if (renderer) {
+                if (renderer.domElement && renderer.domElement.parentNode) {
+                    renderer.domElement.parentNode.removeChild(renderer.domElement);
+                }
+                renderer.dispose();
+            }
+            controls?.dispose();
+            scene = null; camera = null; renderer = null; controls = null;
+        }
+        function clearThreeJSScene() {
+             if (!scene) return;
+             threeObjects.forEach(obj => scene.remove(obj));
+             threeObjects.forEach(group => {
+                group.traverse(object => {
+                    if (object.isMesh) {
+                        object.geometry?.dispose();
+                        if (object.material) {
+                             if (Array.isArray(object.material)) {
+                                 object.material.forEach(material => material.dispose());
+                             } else {
+                                 object.material.dispose();
+                             }
+                         }
+                    }
+                });
+             });
+             threeObjects = [];
+        }
+         function onThreeJSWindowResize() {
+             if (!camera || !renderer) return;
+             camera.aspect = window.innerWidth / window.innerHeight;
+             camera.updateProjectionMatrix();
+             renderer.setSize(window.innerWidth, window.innerHeight);
+         }
+        function drawKaleidoscope3D(isAuto = false) {
+            if (!scene || !renderer) return;
+            let drawX, drawY;
+            let currentFrameCount = renderer.info.render.frame;
+            if (isAuto) {
+                let noiseVal = safeP5Exists() ? myp5.noise(autoDrawNoiseOffset) : Math.random();
+                let noiseVal10 = safeP5Exists() ? myp5.noise(autoDrawNoiseOffset + 10) : Math.random();
+                let noiseVal20 = safeP5Exists() ? myp5.noise(autoDrawNoiseOffset + 20) : Math.random();
+                autoDrawRadius = map(noiseVal10, 0, 1, 0, drawingRadius * 0.8);
+                autoDrawAngle += map(noiseVal20, 0, 1, -autoDrawSpeed, autoDrawSpeed) * 4;
+                drawX = autoDrawRadius * Math.cos(autoDrawAngle);
+                drawY = autoDrawRadius * Math.sin(autoDrawAngle);
+                autoDrawNoiseOffset += 0.005;
+            } else {
+                drawX = mouseClickX3D - window.innerWidth / 2;
+                drawY = -(mouseClickY3D - window.innerHeight / 2);
+            }
+            let distFromCenter = Math.sqrt(drawX * drawX + drawY * drawY);
+            let speed = isAuto ? 10 : 5;
+            let baseSize = map(distFromCenter, 0, drawingRadius, minBrushSize * 0.5, maxBrushSize * 0.5);
+            baseSize = constrain(baseSize, minBrushSize * 0.5, maxBrushSize * 0.5);
+            let baseHue, saturation, brightness;
+            if (currentPaletteIndex === 0) {
+                let noiseHueVal = safeP5Exists() ? myp5.noise(drawX * 0.005, drawY * 0.005, currentFrameCount * 0.001) : Math.random();
+                baseHue = (hueValue + map(noiseHueVal, 0, 1, -90, 90) + speed * speedInfluence) % 360;
+                saturation = map(speed, 0, 30, 0.7, 1.0, true);
+                brightness = map(distFromCenter, 0, drawingRadius, 1.0, 0.6, true);
+            } else {
+                let paletteColors = palettes[currentPaletteIndex].colors;
+                let noiseFactor = safeP5Exists() ? myp5.noise(distFromCenter * 0.01, currentFrameCount * 0.005) : Math.random();
+                let blendFactor = (distFromCenter / drawingRadius + noiseFactor) % 1.0;
+                let index1 = floor(blendFactor * paletteColors.length) % paletteColors.length;
+                let index2 = (index1 + 1) % paletteColors.length;
+                let lerpAmt = (blendFactor * paletteColors.length) % 1.0;
+                let h1 = paletteColors[index1][0]; let s1 = paletteColors[index1][1]/100; let b1 = paletteColors[index1][2]/100;
+                let h2 = paletteColors[index2][0]; let s2 = paletteColors[index2][1]/100; let b2 = paletteColors[index2][2]/100;
+                if (Math.abs(h1 - h2) > 180) { if (h1 < h2) h1 += 360; else h2 += 360; }
+                baseHue = (lerp(h1, h2, lerpAmt) + speed * speedInfluence * 0.3 + currentFrameCount * 0.1) % 360;
+                saturation = constrain(lerp(s1, s2, lerpAmt) + speed * 0.015, 0.5, 1.0);
+                brightness = constrain(lerp(b1, b2, lerpAmt) - distFromCenter * 0.0005, 0.4, 1.0);
+            }
+            if (baseHue < 0) baseHue += 360;
+            let currentSize = baseSize; let currentHue = baseHue;
+            let currentSaturation = saturation; let currentBrightness = brightness;
+            const now = Date.now();
+            if (effectMode === 1) {
+                let pulse = Math.sin(now * 0.008 + distFromCenter * 0.03) * (maxBrushSize * 0.2) + (maxBrushSize * 0.05);
+                currentSize = Math.max(minBrushSize * 0.2, baseSize + pulse);
+                let colorPulse = Math.sin(now * 0.006 + distFromCenter * 0.02) * 30;
+                currentHue = (baseHue + colorPulse) % 360;
+            } else if (effectMode === 2) {
+                 currentHue = (baseHue + now * 0.2) % 360;
+                 currentSaturation = 1.0; currentBrightness = 0.8;
+            }
+            if (currentHue < 0) currentHue += 360;
+            const baseObject = new THREE.Group();
+            for (let i = 0; i < symmetry; i++) {
+                let segmentAngle = angle * i;
+                let geometry; let size = currentSize;
+                switch (drawingMode) {
+                    case 0: geometry = new THREE.BoxGeometry(size * 0.5, size * 0.5, constrain(speed * 0.5, 2, 20)); break;
+                    case 1: geometry = new THREE.SphereGeometry(size * 1.2, 16, 12); break;
+                    case 2: geometry = new THREE.TorusGeometry(size * 1.0, size * 0.4, 16, 24); break;
+                    case 3: geometry = new THREE.BoxGeometry(size, size, size); break;
+                    case 4: geometry = new THREE.SphereGeometry(size * 0.8, 8, 6); break;
+                    case 5: geometry = new THREE.BoxGeometry(size, size, size); break;
+                    default: geometry = new THREE.BoxGeometry(size, size, size);
+                }
+                const material = new THREE.MeshStandardMaterial();
+                material.color.setHSL(currentHue / 360, currentSaturation, currentBrightness);
+                material.roughness = 0.6; material.metalness = 0.2;
+                const mesh = new THREE.Mesh(geometry, material);
+                let xPos = drawX; let yPos = drawY;
+                let zPos = map(Math.sin(now * 0.0002 + segmentAngle), -1, 1, -currentSize * 2, currentSize * 2);
+                if (effectMode === 3) {
+                     let jitterAmount3D = currentSize * 0.5;
+                     xPos += (Math.random() - 0.5) * 2 * jitterAmount3D;
+                     yPos += (Math.random() - 0.5) * 2 * jitterAmount3D;
+                     zPos += (Math.random() - 0.5) * 2 * jitterAmount3D;
+                }
+                mesh.position.set(xPos, yPos, zPos);
+                mesh.rotation.x = now * 0.0001 + speed * 0.01 + segmentAngle * 0.5;
+                mesh.rotation.y = now * 0.00015 + speed * 0.015 + segmentAngle * 0.7;
+                const pivot = new THREE.Object3D();
+                pivot.add(mesh);
+                pivot.rotation.z = segmentAngle;
+                baseObject.add(pivot);
+            }
+            scene.add(baseObject);
+            threeObjects.push(baseObject);
+             hueValue = (hueValue + 0.05 + speed * 0.005) % 360;
+             if (hueValue < 0) hueValue += 360;
+             const MAX_3D_OBJECT_GROUPS = 150;
+             while (threeObjects.length > MAX_3D_OBJECT_GROUPS) {
+                 let oldestGroup = threeObjects.shift();
+                 scene.remove(oldestGroup);
+                 oldestGroup.traverse(object => {
+                    if (!object.isMesh) return;
+                    object.geometry?.dispose();
+                    if (object.material) {
+                        if (Array.isArray(object.material)) object.material.forEach(m => m.dispose());
+                        else object.material.dispose();
+                    }
+                 });
+             }
+        }
+        function onThreeJSPointerDown(event) {
+             if (controlsPanel && controlsPanel.classList.contains('visible')) {
+                 let panelRect = controlsPanel.getBoundingClientRect();
+                 if (event.clientX > panelRect.left && event.clientX < panelRect.right && event.clientY > panelRect.top && event.clientY < panelRect.bottom) { return; }
+             }
+            isMouseDown3D = true;
+            hasDragged3D = false;
+            mouseClickX3D = event.clientX;
+            mouseClickY3D = event.clientY;
+        }
+        function onThreeJSPointerMove(event) {
+            if (!isMouseDown3D) return;
+            let dx = event.clientX - mouseClickX3D;
+            let dy = event.clientY - mouseClickY3D;
+            if (Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD_3D) {
+                hasDragged3D = true;
+            }
+        }
+        function onThreeJSPointerUp(event) {
+             if (controlsPanel && controlsPanel.classList.contains('visible')) {
+                 let panelRect = controlsPanel.getBoundingClientRect();
+                 if (event.clientX > panelRect.left && event.clientX < panelRect.right && event.clientY > panelRect.top && event.clientY < panelRect.bottom) {
+                     isMouseDown3D = false; return;
+                 }
+             }
+            if (isMouseDown3D && !hasDragged3D && !autoDraw) {
+                drawKaleidoscope3D(false);
+            }
+            isMouseDown3D = false;
+            hasDragged3D = false;
+        }
+        function random(min, max) {
+            if (typeof max === 'undefined') { max = min; min = 0; }
+            return Math.random() * (max - min) + min;
+        }
+        function noise(x, y = 0, z = 0) {
+             if (safeP5Exists()) return myp5.noise(x, y, z);
+             let result = (Math.sin(x * 12.9898 + y * 78.233 + z * 45.543) * 43758.5453) % 1;
+             return (result + 1) / 2;
+        }
+        function map(value, start1, stop1, start2, stop2, withinBounds = false) {
+             const newval = (value - start1) / (stop1 - start1) * (stop2 - stop2) + start2;
+             if (!withinBounds) return newval;
+             if (start2 < stop2) {
+                 return constrain(newval, start2, stop2);
+             } else {
+                 return constrain(newval, stop2, start2);
+             }
+        }
+        function constrain(n, low, high) { return Math.max(Math.min(n, high), low); }
+        function floor(n) { return Math.floor(n); }
+        function lerp(start, stop, amt) { return amt * (stop - start) + start; }
+        const { sin, cos, atan2, sqrt, abs, PI, TWO_PI } = Math;
+        class ParticleP5 {
+            constructor(p, x, y, h, s, b, startSize) {
+                this.p = p;
+                this.pos = p.createVector(x, y);
+                let angleFromCenter = p.atan2(y, x); let speed = p.random(0.5, 2.5);
+                this.vel = p.createVector(p.cos(angleFromCenter) * speed, p.sin(angleFromCenter) * speed);
+                this.vel.add(p5.Vector.random2D().mult(p.random(0.5, 1.5)));
+                this.acc = p.createVector(0, 0);
+                this.lifespan = p.random(80, 200); this.initialLifespan = this.lifespan;
+                this.hue = h + p.random(-15, 15); this.sat = p.constrain(s + p.random(-10, 10), 60, 100);
+                this.bri = p.constrain(b + p.random(-10, 10), 50, 100);
+                this.size = p.max(1, startSize * p.random(0.2, 0.6));
+            }
+            update() {
+                this.vel.add(this.acc); this.pos.add(this.vel);
+                this.lifespan -= 1.5; this.acc.mult(0); this.vel.mult(0.98);
+            }
+            display() {
+                let alpha = this.p.map(this.lifespan, 0, this.initialLifespan, 0, 100);
+                this.p.fill(this.hue % 360, this.sat, this.bri, alpha); this.p.noStroke();
+                this.p.ellipse(this.pos.x, this.pos.y, this.size, this.size);
+            }
+            isFinished() { return this.lifespan <= 0; }
+        }
+        document.addEventListener('contextmenu', event => event.preventDefault());
+    </script>
+</body>
+</html>
