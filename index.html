@@ -167,7 +167,6 @@
     </div>
     <div id="loading-indicator">Switching mode...</div>
     <script>
-        // Enhanced global error handlers
         window.addEventListener('error', (event) => {
             const errorDetails = {
                 message: event.message,
@@ -183,7 +182,6 @@
             console.error('Unhandled promise rejection:', event.reason?.stack || event.reason);
         });
 
-        // State management
         const state = {
             is3DMode: false,
             symmetry: 16,
@@ -234,14 +232,12 @@
         let animationFrameId = null;
         let myp5 = null;
 
-        // DOM elements
         let symmetrySlider = null, sizeSlider = null, fadeSlider = null, speedInfluenceSlider = null;
         let clearButton = null, modeButton = null, menuButton = null, controlsPanel = null;
         let effectButton = null, paletteButton = null, dimensionButton = null, saveButton = null, autoDrawButton = null;
         let symmetryValueSpan = null, sizeValueSpan = null, fadeValueSpan = null, speedInfluenceValueSpan = null;
         let loadingIndicator = null;
 
-        // Utility functions using native libraries
         const utils = {
             random: (min, max) => myp5 ? myp5.random(min, max) : Math.random() * (max - min) + min,
             noise: (x, y = 0, z = 0) => myp5 ? myp5.noise(x, y, z) : (Math.sin(x * 12.9898 + y * 78.233 + z * 45.543) * 43758.5453 % 1 + 1) / 2,
@@ -258,7 +254,6 @@
             TWO_PI: Math.PI * 2
         };
 
-        // p5.js sketch
         const sketch = function(p) {
             p.setup = function() {
                 try {
@@ -878,12 +873,12 @@
                     }
                     if (animationFrameId) cancelAnimationFrame(animationFrameId);
                     cleanupThreeJS();
-                    setTimeout(setupThreeJS, 50); // Delay to ensure cleanup completes
+                    setTimeout(setupThreeJS, 50);
                 } else {
                     cleanupThreeJS();
                     setTimeout(() => {
                         myp5 = new p5(sketch);
-                    }, 50); // Delay to ensure cleanup completes
+                    }, 50);
                 }
                 setTimeout(() => {
                     clearActiveCanvas();
@@ -995,7 +990,6 @@
                 if (state.autoDraw) {
                     drawKaleidoscope3D(true);
                 }
-                // Fade out old objects safely
                 const objectsToRemove = [];
                 threeObjects.forEach((obj, index) => {
                     if (!obj) return;
@@ -1008,7 +1002,6 @@
                         }
                     });
                 });
-                // Remove objects in reverse order to avoid index issues
                 objectsToRemove.reverse().forEach(index => {
                     const obj = threeObjects[index];
                     if (obj && scene) {
@@ -1331,7 +1324,6 @@
             }
         }
 
-        // Check WebGL support before initialization
         try {
             const gl = document.createElement('canvas').getContext('webgl');
             if (!gl) {
@@ -1343,7 +1335,6 @@
             alert('Failed to check WebGL support. Check console for details.');
         }
 
-        // Initialize p5.js
         try {
             if (!window.p5 || !window.THREE) {
                 throw new Error('Required libraries (p5.js or Three.js) not loaded');
@@ -1355,7 +1346,6 @@
             alert('Failed to initialize the application. Please check your browser console for details.');
         }
 
-        // Prevent context menu
         document.addEventListener('contextmenu', event => {
             try {
                 event.preventDefault();
